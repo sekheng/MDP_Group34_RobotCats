@@ -3,6 +3,7 @@ package com.example.robotcatmobile;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,6 +24,11 @@ public class BluetoothFrag extends Fragment {
     // TODO: Rename and change types of parameters
     private String mParam1;
     private String mParam2;
+
+    // for the paired UI recycler
+    RecyclerView mPairedRecycler;
+    // for the discovered UI recycler
+    RecyclerView mDiscoveredRecycler;
 
     public BluetoothFrag() {
         // Required empty public constructor
@@ -64,6 +70,8 @@ public class BluetoothFrag extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
+        mPairedRecycler = getView().findViewById(R.id.pairedDeviceRecycler);
+        mDiscoveredRecycler = getView().findViewById(R.id.discoveredDeviceRecycler);
         return inflater.inflate(R.layout.fragment_bluetooth, container, false);
     }
 }
