@@ -1,3 +1,5 @@
+import grid
+
 class Robot:
     #row and col will take bottom left corner of the car as reference
     def __init__(self, row, col, direction):
@@ -74,15 +76,42 @@ class Robot:
         self.center = [[row-3, col+2], [row-3, col+3],
                       [row-2, col+2], [row-2, col+3]]
 
+    def check_valid_move(self, new_pos):
+        if new_pos[0] > 0:
+            if new_pos[0] < 40:
+                if new_pos[1] > 0:
+                    if new_pos[1] < 40:
+                        return True
+        else:
+            return False
+
     def move(self):
         if self.direction == 1:
-            set_row(self.row-1)
+            new_pos = list(self.row-1, self.col)
+            if self.check_valid_move(new_pos):
+               self.set_row(self.row-1)
+            else:
+                print("Invalid move, new position is outside grid")
         elif self.direction == 2:
-            set_col(self.col+1)
+            new_pos = list(self.row, self.col+1)
+            if self.check_valid_move(new_pos):
+                self.set_col(self.col+1)
+            else:
+                print("Invalid move, new position is outside grid")
         elif self.direction == 3:
-            set_row(self.row+1)
+            new_pos = list(self.row+1, self.col)
+            if self.check_valid_move(new_pos):
+                self.set_row(self.row+1)
+            else:
+                print("Invalid move, new position is outside grid")
         elif self.direction == 4:
-            set_col(self.col-1)
+            new_pos = list(self.row, self.col-1)
+            if self.check_valid_move(new_pos):
+                self.set_col(self.col-1)
+            else:
+                print("Invalid move, new position is outside grid")
+
+
 
 
 
