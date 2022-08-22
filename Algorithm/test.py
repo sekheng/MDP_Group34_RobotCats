@@ -1,3 +1,4 @@
+import test
 from grid import *
 from helper import *
 from obstacle import *
@@ -17,5 +18,11 @@ if __name__ == "__main__":
 
     test_grid = Grid(test_obstacles, test_robot)
     test_grid.mark_obstacles()
+    test_grid.mark_robot()
+    test_grid.print_grid()
+
+    print ('------------------------------------------------')
+
+    test_robot.move()
     test_grid.mark_robot()
     test_grid.print_grid()

@@ -87,29 +87,30 @@ class Robot:
 
     def move(self):
         if self.direction == 1:
-            new_pos = list(self.row-1, self.col)
+            new_pos = [self.row-1, self.col]
             if self.check_valid_move(new_pos):
                self.set_row(self.row-1)
             else:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 2:
-            new_pos = list(self.row, self.col+1)
+            new_pos = [self.row, self.col+1]
             if self.check_valid_move(new_pos):
                 self.set_col(self.col+1)
             else:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 3:
-            new_pos = list(self.row+1, self.col)
+            new_pos = [self.row+1, self.col]
             if self.check_valid_move(new_pos):
                 self.set_row(self.row+1)
             else:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 4:
-            new_pos = list(self.row, self.col-1)
+            new_pos = [self.row, self.col-1]
             if self.check_valid_move(new_pos):
                 self.set_col(self.col-1)
             else:
                 print("Invalid move, new position is outside grid")
+        self.update_cells()
 
 
 
