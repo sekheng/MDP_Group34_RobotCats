@@ -33,16 +33,13 @@ class Obstacle:
             i, j = cell
             matrix[i][j] = self.direction
 
-        # demarcate boundaries around obstacle (15cm)
-        for i in range(self.row-4, self.row+4):
-            for j in range(self.col-3, self.col+5):
-                if (matrix[i][j] != 0) or (matrix[i][j] == 'X'):
+        # demarcate boundaries around obstacle (10cm)
+        for i in range(self.row-3, self.row+3):
+            for j in range(self.col-2, self.col+4):
+                if (matrix[i][j] != 0):
                     continue
-                if (i == self.row-4) or (i == self.row+3) or (j == self.col-3) or (j == self.col+4):
-                    matrix[i][j] = 'Y' # perimeter of boundary that the center of car can still traverse
-                    #should we keep it as Y or change it to 0?
                 else:
-                    matrix[i][j] = 'X' # these cells cannot be traversed
+                    matrix[i][j] = 'X' # invalid if center of car has to traverse these cells
 
         return matrix
 

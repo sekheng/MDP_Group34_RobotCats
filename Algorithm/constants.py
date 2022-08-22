@@ -12,7 +12,7 @@ VIEW_DIST = 20
 TURN_RADIUS = 25
 
 # directions
-directions = {'N': 0, 'E': 1, 'S': 2, 'W': 3}
+directions = {'N': 1, 'E': 2, 'S': 3, 'W': 4}
 
 # moves
 moves = ['F','L','R']
