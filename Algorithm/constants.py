@@ -15,4 +15,4 @@ TURN_RADIUS = 25
 directions = {'N': 0, 'E': 1, 'S': 2, 'W': 3}
 
 # moves
-moves = ['F','B','L','R']
+moves = ['F','L','R']

@@ -3,6 +3,7 @@ class Obstacle:
         # coords always refer to bottom-left cell of entire obstacle
         self.row = row
         self.col = col
+        #direction is N,S,E,W
         self.direction = direction
         self.cells = [[row, col], [row, col+1], [row-1, col], [row-1, col+1]]
                     # bottom-left, bottom-right, top-left, top-right cells of obstacle
@@ -39,6 +40,7 @@ class Obstacle:
                     continue
                 if (i == self.row-4) or (i == self.row+3) or (j == self.col-3) or (j == self.col+4):
                     matrix[i][j] = 'Y' # perimeter of boundary that the center of car can still traverse
+                    #should we keep it as Y or change it to 0?
                 else:
                     matrix[i][j] = 'X' # these cells cannot be traversed
 

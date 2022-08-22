@@ -1,9 +1,11 @@
 import numpy as np
+
 from constants import *
 
 class Grid:
 
-    def __init__(self, obstacles = None):
+    def __init__(self, obstacles = None, robot = None):
+        self.robot = robot
         self.obstacles = obstacles
         self.num_rows = int(AREA_LENGTH / CELL_SIZE)
         self.num_cols = int(AREA_WIDTH / CELL_SIZE)
@@ -19,6 +21,9 @@ class Grid:
     def mark_obstacles(self):
         for obstacle in self.obstacles:
             obstacle.mark(self.matrix)
+
+    def mark_robot(self):
+        self.robot.mark(self.matrix)
 
     def print_grid(self):
         for i in self.matrix:

@@ -1,6 +1,7 @@
 from grid import *
 from helper import *
 from obstacle import *
+from robot import *
 
 if __name__ == "__main__":
 
@@ -10,6 +11,9 @@ if __name__ == "__main__":
         rol, col, dir = to_indices(o)
         test_obstacles[idx] = Obstacle(rol, col, dir)
 
-    test_grid = Grid(test_obstacles)
+    test_robot = Robot(0, 0, 1)
+
+    test_grid = Grid(test_obstacles, test_robot)
     test_grid.mark_obstacles()
+    test_grid.mark_robot()
     test_grid.print_grid()
