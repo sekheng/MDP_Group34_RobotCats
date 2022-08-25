@@ -1,5 +1,5 @@
 # grid cell
-CELL_SIZE = 5
+CELL_SIZE = 10
 
 # area dimensions
 AREA_WIDTH = 200

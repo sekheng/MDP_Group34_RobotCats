@@ -25,6 +25,9 @@ class Grid:
     def mark_robot(self):
         self.robot.mark(self.matrix)
 
+    def delete_cur_robot_position(self):
+        self.robot.delete_robot_position(self.matrix)
+
     def print_grid(self):
         for i in self.matrix:
             for j in i:

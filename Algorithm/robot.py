@@ -7,14 +7,11 @@ class Robot:
         self.col = col
         #direction is 1,2,3,4 for N,E,S,W
         self.direction = direction
-        self.cells = [[row-5, col], [row-5, col+1], [row-5, col+2], [row-5, col+3], [row-5, col+4], [row-5, col+5],
-                      [row-4, col], [row-4, col+1], [row-4, col+2], [row-4, col+3], [row-4, col+4], [row-4, col+5],
-                      [row-3, col], [row-3, col+1], [row-3, col+2], [row-3, col+3], [row-3, col+4], [row-3, col+5],
-                      [row-2, col], [row-2, col+1], [row-2, col+2], [row-2, col+3], [row-2, col+4], [row-2, col+5],
-                      [row-1, col], [row-1, col+1], [row-1, col+2], [row-1, col+3], [row-1, col+4], [row-1, col+5],
-                      [row, col], [row, col+1], [row, col+2], [row, col+3], [row, col+4], [row, col+5]]
-        self.center = [[row-3, col+2], [row-3, col+3],
-                      [row-2, col+2], [row-2, col+3]]
+        self.cells = [[row-2, col], [row-2, col+1], [row-2, col+2],
+                      [row-1, col], [row-1, col+1], [row-1, col+2],
+                      [row, col], [row, col+1], [row, col+2]
+                      ]
+        self.center = [row-1, col+1]
 
     def get_row(self):
         return self.row
@@ -35,10 +32,19 @@ class Robot:
         self.direction = direction
 
     def mark(self, matrix):
+        old_matrix = matrix
         # draw robot
         for cell in self.cells:
             i, j = cell
             matrix[i][j] = self.direction
+        #print(matrix)
+        return matrix
+
+    def delete_robot_position(self, matrix):
+        for cell in self.cells:
+            i, j = cell
+            matrix[i][j] = 0
+        #print(matrix)
         return matrix
 
     def turn(self, turn_direction):
@@ -64,22 +70,19 @@ class Robot:
             elif turn_direction == 'right':
                 self.direction = 1
 
-    def update_cells(self):
+    def update_cells_after_move(self):
         row = self.row
         col = self.col
-        self.cells = [[row-5, col], [row-5, col+1], [row-5, col+2], [row-5, col+3], [row-5, col+4], [row-5, col+5],
-                      [row-4, col], [row-4, col+1], [row-4, col+2], [row-4, col+3], [row-4, col+4], [row-4, col+5],
-                      [row-3, col], [row-3, col+1], [row-3, col+2], [row-3, col+3], [row-3, col+4], [row-3, col+5],
-                      [row-2, col], [row-2, col+1], [row-2, col+2], [row-2, col+3], [row-2, col+4], [row-2, col+5],
-                      [row-1, col], [row-1, col+1], [row-1, col+2], [row-1, col+3], [row-1, col+4], [row-1, col+5],
-                      [row, col], [row, col+1], [row, col+2], [row, col+3], [row, col+4], [row, col+5]]
-        self.center = [[row-3, col+2], [row-3, col+3],
-                      [row-2, col+2], [row-2, col+3]]
+        self.cells = [[row - 2, col], [row - 2, col + 1], [row - 2, col + 2],
+                      [row - 1, col], [row - 1, col + 1], [row - 1, col + 2],
+                      [row, col], [row, col + 1], [row, col + 2]
+                      ]
+        self.center = [row - 1, col + 1]
 
     def check_valid_move(self, new_pos):
-        if new_pos[0] > 0:
+        if new_pos[0] >= 0:
             if new_pos[0] < 40:
-                if new_pos[1] > 0:
+                if new_pos[1] >= 0:
                     if new_pos[1] < 40:
                         return True
         else:
@@ -110,7 +113,7 @@ class Robot:
                 self.set_col(self.col-1)
             else:
                 print("Invalid move, new position is outside grid")
-        self.update_cells()
+        self.update_cells_after_move()
 
 
 
