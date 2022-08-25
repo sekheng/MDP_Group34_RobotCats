@@ -1,3 +1,4 @@
+from constants import *
 class Obstacle:
     def __init__(self, row, col, direction):
         # coords always refer to bottom-left cell of entire obstacle
@@ -6,6 +7,7 @@ class Obstacle:
         #direction is N,S,E,W
         self.direction = direction
         self.cells = row, col
+        self.viewpos = None
 
     def get_row(self):
         return self.row
@@ -15,6 +17,9 @@ class Obstacle:
 
     def get_direction(self):
         return self.direction
+
+    def get_viewpos(self):
+        return self.viewpos
 
     def set_row(self, row):
         self.row = row
@@ -36,7 +41,30 @@ class Obstacle:
                 if (matrix[i][j] != 0):
                     continue
                 else:
-                    matrix[i][j] = 'X' # invalid if center of car has to traverse these cells
+                    matrix[i][j] = 'X'  # invalid if center of car has to traverse these cells
 
         return matrix
+    def set_viewpos(self, num_cols, num_rows):
+        # set the position where car should stop to view image
+        optimal_dist = VIEW_DIST / CELL_SIZE  # min number of cells between car center and image
+        v_row, v_col, v_dir = self.row, self.col, self.direction
 
+        # TODO: Edit to correspond to 40 x 40 grid
+        if self.direction == 'N':
+            v_row -= optimal_dist
+            v_dir = 'S'
+        elif self.direction == 'S':
+            v_row += optimal_dist
+            v_dir = 'N'
+        elif self.direction == 'E':
+            v_col += optimal_dist
+            v_dir = 'W'
+        elif self.direction == 'W':
+            v_col -= optimal_dist
+            v_dir = 'E'
+
+        if v_col >= num_cols - 1 or v_col <= 0 or v_row >= num_rows - 1 or v_row <= 0:
+            v_row, v_col = float("-inf"), float("-inf")  # -inf for images that cannot be seen
+                                                         # as car will exceed arena boundary
+
+        self.viewpos = [v_row, v_col, v_dir]

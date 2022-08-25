@@ -14,3 +14,10 @@ def to_indices(coords):
         # new_coords.append([new_x, new_y, dir])
 
     return [new_x, new_y, dir]
+
+def set_cells(row, col, direction):
+    # obstacle cells
+    if direction == 'N':
+        return [[row, col], [row, col + 1], [row - 1, col], [row - 1, col + 1]]
+    if direction == 'E':
+        return [[row, col], [row, col + 1], [row - 1, col], [row - 1, col + 1]]
