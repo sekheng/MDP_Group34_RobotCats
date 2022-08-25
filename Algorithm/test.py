@@ -3,6 +3,7 @@ from grid import *
 from helper import *
 from obstacle import *
 from robot import *
+from shortest_path import *
 
 if __name__ == "__main__":
 
@@ -22,6 +23,9 @@ if __name__ == "__main__":
     test_grid.mark_obstacles()
     test_grid.mark_robot()
     test_grid.print_grid()
+
+    test_path = ShortestPath(test_grid)
+    print("Shortest Route:", test_path.get_shortest_path(), "Distance travelled =", test_path.distance)
 
     print ('------------------------------------------------')
 
