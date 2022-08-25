@@ -10,4 +10,6 @@
     <color name="colorPrimary">#262424</color>
     <color name="colorPrimaryDark">#262424</color>
     <color name="colorAccent">#D9D9D9</color>
+    <color name="chat_gray_background">#BEBEBE</color>
+    <color name="chat_input">#332E2E</color>
 </resources>

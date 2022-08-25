@@ -14,7 +14,7 @@
             android:id="@+id/bluetooth_txt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/bluetooth_status"
+            android:text="Bluetooth: OFF"
             android:textColor="@color/black"
             android:textStyle="bold"
             />
@@ -29,6 +29,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/bluetooth_search"
+            />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/bluetooth_discoverable"
+            android:text="@string/discover"
             />
     </LinearLayout>
 
