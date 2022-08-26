@@ -4,13 +4,14 @@ from constants import *
 from node import Node
 from route import Route
 import helper
+from point_to_point import PointToPoint
 
 
 class ShortestPath:
 
     def __init__(self, grid):
         self.grid = grid
-        self.start = [18, 1, 1]  # 1: NORTH
+        self.start = helper.to_indices([1, 1, 1])  # 1: NORTH
         self.distance = float('inf')  # distance of chosen shortest route
         self.route = None
 
@@ -37,28 +38,51 @@ class ShortestPath:
             elif curr_pos[2] == 4:
                 new_pos[1] += 1
         elif move == 'L':
-            new_pos[2] = (curr_pos[2] + 3) % 4
+            if curr_pos[2] == 1:  # N
+                new_pos[2] = 4  # W
+            elif curr_pos[2] == 2:  # E
+                new_pos[2] = 1  # N
+            elif curr_pos[2] == 3:  # S
+                new_pos[2] = 2  # E
+            elif curr_pos[2] == 4:  # W
+                new_pos[2] = 3  # S
+            # new_pos[2] = (curr_pos[2] + 3) % 4
         elif move == 'R':
-            new_pos[2] = (curr_pos[2] + 1) % 4
+            if curr_pos[2] == 1:  # N
+                new_pos[2] = 2 # E
+            elif curr_pos[2] == 2:  # E
+                new_pos[2] = 3  # S
+            elif curr_pos[2] == 3:  # S
+                new_pos[2] = 4  # W
+            elif curr_pos[2] == 4:  # W
+                new_pos[2] = 1  # N
+            # new_pos[2] = (curr_pos[2] + 1) % 4
 
         child = Node(curr_node, move, new_pos)
+        # print("Child", new_pos)
         return child
 
     def is_move_valid(self, curr_pos, new_pos, move):
-        if move == 'L' or move == 'R':
-            return self.is_turn_valid(curr_pos, move)
+        # if move == 'L' or move == 'R':
+        #     return self.is_turn_valid(curr_pos, move)
 
         return self.grid.robot_pos_is_valid(new_pos)
 
     def is_turn_valid(self, curr_pos, move):
 
         xi, yi, d = curr_pos
+
+        # print("d =", d, ",move =", move)
+
         if (d == 1 and move == 'L') or (d == 4 and move == 'R'):
             xn, yn = xi - TURN_GRIDS, yi - TURN_GRIDS
+            # print("xn =", xn)
         elif (d == 4 and move == 'L') or (d == 3 and move == 'R'):
             xn, yn = xi + TURN_GRIDS, yi - TURN_GRIDS
+            # print("xn =", xn)
         elif (d == 3 and move == 'L') or (d == 2 and move == 'R'):
             xn, yn = xi + TURN_GRIDS, yi + TURN_GRIDS
+            # print("xn =", xn)
         elif (d == 2 and move == 'L') or (d == 1 and move == 'R'):
             xn, yn = xi - TURN_GRIDS, yi + TURN_GRIDS
 
@@ -76,17 +100,24 @@ class ShortestPath:
         # already computed point-to-point distances
 
         viewing_pos = list(obs.viewpos for obs in self.grid.obstacles)
+        # print("Viewing positions:", viewing_pos)
         candidate_routes = list(itertools.permutations(viewing_pos))  # get all path permutations
         chosen_route = (float('inf'), None)  # total distance, path
 
         possible = True
 
-        for route in candidate_routes:
+        # print("candidate routes =", candidate_routes)
+        for i, route in enumerate(candidate_routes):
+            # if i == 5:
+            #     break
+            # print("route =", route)
             total_dist = 0
             paths = []
             start = self.start
 
             for viewpos in route:
+
+                # print("viewpos =", viewpos)
 
                 if total_dist > chosen_route[0]:
                     possible = False
@@ -96,24 +127,26 @@ class ShortestPath:
 
                 goal = viewpos
 
+                # print("start =", start, "goal =", goal)
+
                 if (tuple(start), tuple(goal)) not in cache:
                     path = self.astar(start, goal)
-                    print(type(path))
-                    if len(path['steps']) > 0:
+                    if path is None:
                         print("No path found for this route")
                         possible = False
                         break
 
-                    cache[(start, goal)] = (path['dist'], path['steps'])
-                    pt_to_pt.distance = path['dist']
+                    cache[(tuple(start), tuple(goal))] = (path.distance, path.route)
+                    pt_to_pt.distance = path.distance
                     total_dist += pt_to_pt.distance
-                    pt_to_pt.route = path['steps']
+                    pt_to_pt.route = path.route
                 else:
                     # print("Cache hit")
-                    dist, path = cache[(start, goal)]
+                    dist, path = cache[(tuple(start), tuple(goal))]
                     # print(dist, path)
                     pt_to_pt.distance = dist
                     pt_to_pt.route = path
+                    total_dist += pt_to_pt.distance
 
                 # paths = paths + ucs.get_path()
                 start = goal
@@ -129,8 +162,6 @@ class ShortestPath:
         self.route = chosen_route[1]
         self.distance = chosen_route[0]
 
-        return self.route
-
     def astar(self, start, goal):
         # Create start and goal node
         start_node = Node(None, None, start)
@@ -140,7 +171,7 @@ class ShortestPath:
 
         # Initialize both open and closed list
         open_list = []
-        closed_list = set()
+        closed_list = []
 
         # Add the start node
         heapq.heappush(open_list, start_node)
@@ -150,20 +181,22 @@ class ShortestPath:
 
             # Get the current node, pop current off open list
             current_node = heapq.heappop(open_list)
+            # print("current node =", current_node.position)
 
             # Add to closed list
-            closed_list.add(tuple(current_node.position))
+            closed_list.append(tuple(current_node.position))
 
             # Found the goal
             if current_node.position == goal_node.position:  # == end
-                path = []
-                dist = 0
+                # print("goal found")
+                pt_to_pt = PointToPoint()
                 current = current_node
                 while current.prev_move is not None:
-                    path.append(current.prev_move)
-                    dist += current.g
+                    pt_to_pt.route.insert(0, current.prev_move)
+                    pt_to_pt.distance += current.g
                     current = current.parent
-                return {'steps': path[::-1], 'dist': dist}  # Return reversed path and distance
+
+                return pt_to_pt  # Return reversed path and distance
 
             # Generate children
             children = []
@@ -182,13 +215,17 @@ class ShortestPath:
 
                 # Make sure within range and valid
                 if not self.is_move_valid(current_node.position, node_position, move):
+                    # print("Invalid move from", current_node.position, "to", node_position)
                     continue
 
                 # Append
                 children.append(child)
 
+            # print("Children =", children)
             # Loop through children
             for child in children:
+
+                # print("child", child)
 
                 # Child is on the closed list
                 if tuple(child.position) in closed_list:
@@ -201,13 +238,21 @@ class ShortestPath:
                 child.f = child.g + child.h
 
                 # If child is already in open list, but has a higher f in open list, update to new (lower) f
+                exists = False
                 for idx in range(len(open_list)):
                     open_node = open_list[idx]
                     if child.position == open_node.position:
+                        # print(child.position, "already exists")
+                        exists = True
                         if child.f < open_node.f:
                             open_list.pop(idx)
                             open_list.append(child)
                             heapq.heapify(open_list)
+                            break
 
                 # If child not in either lists (not visited or queued), add child to the open list
-                heapq.heappush(open_list, child)
+                if not exists:
+                    heapq.heappush(open_list, child)
+
+
+        # print("closed list=", closed_list)

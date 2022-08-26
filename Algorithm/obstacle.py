@@ -4,7 +4,7 @@ class Obstacle:
         # coords always refer to bottom-left cell of entire obstacle
         self.row = row
         self.col = col
-        #direction is N,S,E,W
+        # direction is N,S,E,W
         self.direction = direction
         self.cells = row, col
         self.viewpos = None
@@ -33,6 +33,7 @@ class Obstacle:
     def mark(self, matrix):
 
         # draw obstacle itself
+        print(self.row, self.col)
         matrix[self.row][self.col] = self.direction
 
         # demarcate boundaries around obstacle (10cm)
@@ -46,22 +47,21 @@ class Obstacle:
         return matrix
     def set_viewpos(self, num_cols, num_rows):
         # set the position where car should stop to view image
-        optimal_dist = VIEW_DIST / CELL_SIZE  # min number of cells between car center and image
+        optimal_dist = VIEW_DIST // CELL_SIZE  # min number of cells between car center and image
         v_row, v_col, v_dir = self.row, self.col, self.direction
 
-        # TODO: Edit to correspond to 40 x 40 grid
         if self.direction == 'N':
             v_row -= optimal_dist
-            v_dir = 'S'
+            v_dir = 3
         elif self.direction == 'S':
             v_row += optimal_dist
-            v_dir = 'N'
+            v_dir = 1
         elif self.direction == 'E':
             v_col += optimal_dist
-            v_dir = 'W'
+            v_dir = 4
         elif self.direction == 'W':
             v_col -= optimal_dist
-            v_dir = 'E'
+            v_dir = 2
 
         if v_col >= num_cols - 1 or v_col <= 0 or v_row >= num_rows - 1 or v_row <= 0:
             v_row, v_col = float("-inf"), float("-inf")  # -inf for images that cannot be seen

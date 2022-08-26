@@ -1,6 +1,5 @@
-import numpy as np
-
 from constants import *
+
 
 class Grid:
 
@@ -30,16 +29,18 @@ class Grid:
         self.robot.delete_robot_position(self.matrix)
 
     def pos_is_obstacle(self, x, y):
-        return self.matrix[x][y] != 0  # non-zero values are obstacles
+        return self.matrix[x][y] in OBS_MARKINGS  # obstacles and their boundaries are N S E W or X
 
     def pos_is_valid(self, x, y):
-        return x >= 0 and x <= self.num_rows - 1 and y >= 0 and y <= self.num_cols - 1 and not self.pos_is_obstacle(x, y)
+        return 0 <= x <= self.num_rows - 1 and 0 <= y <= self.num_cols - 1 and not self.pos_is_obstacle(x, y)
 
     def robot_pos_is_valid(self, robot_centre):
         x_c, y_c, _ = robot_centre
         for x in range(x_c - 1, x_c + 2):
             for y in range(y_c - 1, y_c + 2):
+                # print("Checking", x, y)
                 if (not self.pos_is_valid(x, y)):
+                    # print("Pos is not valid")
                     return False
 
         return True

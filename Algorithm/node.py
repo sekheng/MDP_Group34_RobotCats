@@ -9,3 +9,9 @@ class Node:
         self.g = 0
         self.h = 0
         self.f = 0
+
+    def __lt__(self, other):
+            return self.f < other.f
+
+    def __repr__(self):
+            return str(self.position)
