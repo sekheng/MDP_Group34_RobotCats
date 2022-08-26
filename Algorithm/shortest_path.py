@@ -100,7 +100,7 @@ class ShortestPath:
         # already computed point-to-point distances
 
         viewing_pos = list(obs.viewpos for obs in self.grid.obstacles)
-        # print("Viewing positions:", viewing_pos)
+        print("Viewing positions:", viewing_pos)
         candidate_routes = list(itertools.permutations(viewing_pos))  # get all path permutations
         chosen_route = (float('inf'), None)  # total distance, path
 
@@ -108,12 +108,14 @@ class ShortestPath:
 
         # print("candidate routes =", candidate_routes)
         for i, route in enumerate(candidate_routes):
-            # if i == 5:
+            # if i == 4:
             #     break
             # print("route =", route)
             total_dist = 0
             paths = []
             start = self.start
+
+            # print("---------------------------------")
 
             for viewpos in route:
 
@@ -126,6 +128,9 @@ class ShortestPath:
                 pt_to_pt = Route(position=viewpos)
 
                 goal = viewpos
+
+                if start == goal:
+                    continue
 
                 # print("start =", start, "goal =", goal)
 
@@ -157,6 +162,7 @@ class ShortestPath:
             if total_dist < chosen_route[0] and possible:
                 if len(paths) != len(self.grid.obstacles):
                     print("Not every obstacle is accessible")
+                    continue
                 chosen_route = (total_dist, paths)
 
         self.route = chosen_route[1]
@@ -188,14 +194,13 @@ class ShortestPath:
 
             # Found the goal
             if current_node.position == goal_node.position:  # == end
-                # print("goal found")
+                print("goal found", current_node.position)
                 pt_to_pt = PointToPoint()
                 current = current_node
                 while current.prev_move is not None:
                     pt_to_pt.route.insert(0, current.prev_move)
                     pt_to_pt.distance += current.g
                     current = current.parent
-
                 return pt_to_pt  # Return reversed path and distance
 
             # Generate children
@@ -205,10 +210,10 @@ class ShortestPath:
                 # get new possible child node
                 child = self.get_child(current_node, move)
                 if move == 'R' or move == 'L':
-                    child.g = 30
+                    child.g = 1
 
                 if move == 'B':
-                    child.g = 10
+                    child.g = 1
 
                 # Get node position
                 node_position = child.position
