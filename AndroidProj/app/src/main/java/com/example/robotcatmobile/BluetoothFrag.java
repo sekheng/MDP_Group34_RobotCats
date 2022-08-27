@@ -24,6 +24,7 @@ import androidx.annotation.RequiresApi;
 import androidx.collection.ArraySet;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -91,7 +92,7 @@ public class BluetoothFrag extends Fragment {
 
     ProgressDialog mConnectDialog;
 
-    Runnable reconnectionRunnable = new Runnable() {
+    Runnable mReconnectionRunnable = new Runnable() {
         @Override
         public void run() {
             try {
@@ -100,7 +101,7 @@ public class BluetoothFrag extends Fragment {
                     myBluetoothConn.startClientThread(BluetoothConn.instance.mDevice);
                     Toast.makeText(getContext(), "Reconnection Success", Toast.LENGTH_SHORT).show();
                 }
-                reconnectionHandler.removeCallbacks(reconnectionRunnable);
+                reconnectionHandler.removeCallbacks(mReconnectionRunnable);
                 retryConnection = false;
             } catch (Exception e) {
                 Toast.makeText(getContext(), "Failed to reconnect, trying in 5 second", Toast.LENGTH_SHORT).show();
@@ -159,6 +160,10 @@ public class BluetoothFrag extends Fragment {
 
         IntentFilter discoverIntent = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
         getContext().registerReceiver(mDiscoverabilityBR, discoverIntent);
+
+        IntentFilter connectionStatusIntent = new IntentFilter(BluetoothConn.CONNECTION_STATUS);
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mDisconnBR, connectionStatusIntent);
+
 
         mConnectDialog = new ProgressDialog(getContext());
         mConnectDialog.setMessage("Waiting for other device to reconnect...");
@@ -454,7 +459,7 @@ public class BluetoothFrag extends Fragment {
     };
 
 
-    private BroadcastReceiver mBroadcastReceiver5 = new BroadcastReceiver() {
+    private BroadcastReceiver mDisconnBR = new BroadcastReceiver() {
         @SuppressLint("MissingPermission")
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -470,13 +475,13 @@ public class BluetoothFrag extends Fragment {
                     e.printStackTrace();
                 }
 
-                Log.d(TAG, "mBroadcastReceiver5: Device now connected to "+mDevice.getName());
+                Log.d(TAG, "mDisconnBR: Device now connected to " + mDevice.getName());
                 Toast.makeText(getContext(), "Device now connected to "+mDevice.getName(), Toast.LENGTH_LONG).show();
                 editor.putString("connStatus", "Connected to " + mDevice.getName());
                 //connStatusTextView.setText("Connected to " + mDevice.getName());
             }
-            else if(status.equals("disconnected") && retryConnection == false){
-                Log.d(TAG, "mBroadcastReceiver5: Disconnected from "+mDevice.getName());
+            else if(status.equals("disconnected") && !retryConnection){
+                Log.d(TAG, "mDisconnBR: Disconnected from "+mDevice.getName());
                 Toast.makeText(getContext(), "Disconnected from "+mDevice.getName(), Toast.LENGTH_LONG).show();
 
 
@@ -491,8 +496,7 @@ public class BluetoothFrag extends Fragment {
                     Log.d(TAG, "BluetoothPopUp: mBroadcastReceiver5 Dialog show failure");
                 }
                 retryConnection = true;
-                reconnectionHandler.postDelayed(reconnectionRunnable, 5000);
-
+                reconnectionHandler.postDelayed(mReconnectionRunnable, 5000);
             }
             editor.commit();
         }

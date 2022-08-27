@@ -25,6 +25,8 @@ import java.util.UUID;
 public class BluetoothConn {
     public static BluetoothConn instance;
     private static final String TAG = "DebuggingTag";
+    // to get the string for connection status message
+    public static final String CONNECTION_STATUS = "ConnectionStatus";
 
     public static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
@@ -196,7 +198,7 @@ public class BluetoothConn {
         public ConnectedThread(BluetoothSocket socket) {
             Log.d(TAG, "ConnectedThread: Starting.");
 
-            connectionStatus = new Intent("ConnectionStatus");
+            connectionStatus = new Intent(CONNECTION_STATUS);
             connectionStatus.putExtra("Status", "connected");
             connectionStatus.putExtra("Device", mDevice);
             LocalBroadcastManager.getInstance(mContext).sendBroadcast(connectionStatus);
@@ -234,7 +236,7 @@ public class BluetoothConn {
                 } catch (IOException e) {
                     Log.e(TAG, "Error reading input stream. "+e.getMessage());
 
-                    connectionStatus = new Intent("ConnectionStatus");
+                    connectionStatus = new Intent(CONNECTION_STATUS);
                     connectionStatus.putExtra("Status", "disconnected");
                     connectionStatus.putExtra("Device", mDevice);
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(connectionStatus);
