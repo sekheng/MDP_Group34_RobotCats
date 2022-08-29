@@ -50,25 +50,25 @@ class Robot:
     def turn(self, turn_direction):
         #direction will be left or right
         if self.direction == 1:
-            if turn_direction == 'left':
-                self.direction = 4
-            elif turn_direction == 'right':
-                self.direction = 2
+            if turn_direction == 'L':
+                self.set_direction(4)
+            elif turn_direction == 'R':
+                self.set_direction(2)
         elif self.direction == 2:
-            if turn_direction == 'left':
-                self.direction = 1
-            elif turn_direction == 'right':
-                self.direction = 3
-        if self.direction == 3:
-            if turn_direction == 'left':
-                self.direction = 2
-            elif turn_direction == 'right':
-                self.direction = 4
-        if self.direction == 4:
-            if turn_direction == 'left':
-                self.direction = 3
-            elif turn_direction == 'right':
-                self.direction = 1
+            if turn_direction == 'L':
+                self.set_direction(1)
+            elif turn_direction == 'R':
+                self.set_direction(3)
+        elif self.direction == 3:
+            if turn_direction == 'L':
+                self.set_direction(2)
+            elif turn_direction == 'R':
+                self.set_direction(4)
+        elif self.direction == 4:
+            if turn_direction == 'L':
+                self.set_direction(3)
+            elif turn_direction == 'R':
+                self.set_direction(1)
 
     def update_cells_after_move(self):
         row = self.row
@@ -88,29 +88,54 @@ class Robot:
         else:
             return False
 
-    def move(self):
+    def move(self, move):
+        new_pos = [self.row, self.col]
         if self.direction == 1:
-            new_pos = [self.row-1, self.col]
+            if move == 'F':
+                new_pos = [self.row-1, self.col]
+            elif move == 'B':
+                new_pos = [self.row+1, self.col]
+            else:
+                print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
-               self.set_row(self.row-1)
+               self.set_row(new_pos[0])
+               self.set_col(new_pos[1])
             else:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 2:
-            new_pos = [self.row, self.col+1]
+            if move == 'F':
+                new_pos = [self.row, self.col+1]
+            elif move == 'B':
+                new_pos = [self.row, self.col-1]
+            else:
+                print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
-                self.set_col(self.col+1)
+                self.set_row(new_pos[0])
+                self.set_col(new_pos[1])
             else:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 3:
-            new_pos = [self.row+1, self.col]
+            if move == 'F':
+                new_pos = [self.row+1, self.col]
+            elif move == 'B':
+                new_pos = [self.row-1, self.col]
+            else:
+                print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
-                self.set_row(self.row+1)
+                self.set_row(new_pos[0])
+                self.set_col(new_pos[1])
             else:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 4:
-            new_pos = [self.row, self.col-1]
+            if move == 'F':
+                new_pos = [self.row, self.col-1]
+            elif move == 'B':
+                new_pos = [self.row, self.col + 1]
+            else:
+                print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
-                self.set_col(self.col-1)
+                self.set_row(new_pos[0])
+                self.set_col(new_pos[1])
             else:
                 print("Invalid move, new position is outside grid")
         self.update_cells_after_move()

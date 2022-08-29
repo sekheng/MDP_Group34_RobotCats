@@ -6,7 +6,6 @@ def to_indices(coords):
 
     # new_coords = []
     num_rows = AREA_LENGTH // CELL_SIZE
-
     # for coord in coords:
     x, y, dir = coords
     new_x = num_rows - 1 - y

@@ -7,7 +7,6 @@ from shortest_path import *
 import constants
 
 if __name__ == "__main__":
-
     # construct obstacles
     test_obstacles = [[2,9,'S'],[7,13,'N'],[17,2,'N'],[18,10,'W'],[15,18,'S'],[11,8,'W']]
     # print("Test obstacles:")
@@ -20,6 +19,8 @@ if __name__ == "__main__":
     r_row, r_col, r_dir = to_indices([0, 0, 1])
     test_robot = Robot(r_row, r_col, r_dir)
 
+    print(test_obstacles)
+
     #test_robot = Robot(0, 0, 1)
 
     test_grid = Grid(test_obstacles, test_robot)
@@ -29,26 +30,37 @@ if __name__ == "__main__":
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
-    print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
+    print(test_path.route[0].route)
+    #for routes in test_path.route:
+        #print(routes.route)
+    #print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
 
     print ('------------------------------------------------')
 
-    def move_robot_on_grid():
-        while True:
-            print("Current direction robot is facing is: " + str(test_robot.direction))
-            move_cfm_input = input('Confirm movement? Y/N: ')
-            if move_cfm_input.lower() == 'y':
+    def move_robot_on_grid(shortest_path_object):
+        print("Initial direction robot is facing is: " + str(test_robot.direction))
+        move_counter = 1
+        route_counter = 1
+        for routes in shortest_path_object.route:
+            print('Route ' + str(route_counter))
+            print('Route is ' + str(routes.route))
+            print('---------------------------------------')
+            for move in routes.route:
+                print('Move ' + str(move_counter) + ' is ' + str(move))
+                print('---------------------------------------')
                 test_grid.delete_cur_robot_position()
-                test_robot.move()
+                if move == 'F' or move == 'B':
+                    test_robot.move(move)
+                elif move == 'L' or move == 'R':
+                    test_robot.turn(move)
+
                 test_grid.mark_robot()
                 test_grid.print_grid()
-                break
-            elif move_cfm_input.lower() == 'n':
-                break
-            else:
-                print("Incorrect input, try again! (Y/N)")
+                move_counter+=1
+            route_counter+=1
 
-    # move_robot_on_grid()
+
+    move_robot_on_grid(test_path)
 
 
 
