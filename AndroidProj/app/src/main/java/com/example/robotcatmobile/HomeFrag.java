@@ -87,16 +87,19 @@ public class HomeFrag extends Fragment {
         mGridLayout.setAdapter(gridRecycler);
         // span count in this case is the number of columns
         mGridLayout.setLayoutManager(new GridLayoutManager(getContext(), GridRecycler.COLUMNS));
-/*
+
+
         mVerticalLabels = view.findViewById(R.id.grid_verticalLabels);
         GridLabelRecycler verticalLabelRecycler = new GridLabelRecycler(true);
         mVerticalLabels.setAdapter(verticalLabelRecycler);
         mVerticalLabels.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL,false));
+        mVerticalLabels.setMinimumHeight(mGridLayout.getHeight());
 
         mHorizontalLabels = view.findViewById(R.id.grid_horizontalLabels);
         GridLabelRecycler horizontalLabelRecycler = new GridLabelRecycler(false);
         mHorizontalLabels.setAdapter(horizontalLabelRecycler);
         mHorizontalLabels.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
- */
+        int widthOfGridLayout = mGridLayout.getWidth();
+        mHorizontalLabels.setMinimumWidth(mGridLayout.getWidth());
     }
 }
