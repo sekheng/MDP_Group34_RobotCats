@@ -1,4 +1,5 @@
 import grid
+from constants import *
 
 class Robot:
     #row and col will take bottom left corner of the car as reference
@@ -52,23 +53,41 @@ class Robot:
         if self.direction == 1:
             if turn_direction == 'L':
                 self.set_direction(4)
+                self.set_row(self.row - TURN_GRIDS)
+                self.set_col(self.col - TURN_GRIDS)
             elif turn_direction == 'R':
                 self.set_direction(2)
+                self.set_row(self.row - TURN_GRIDS)
+                self.set_col(self.col + TURN_GRIDS)
         elif self.direction == 2:
             if turn_direction == 'L':
                 self.set_direction(1)
+                self.set_row(self.row - TURN_GRIDS)
+                self.set_col(self.col + TURN_GRIDS)
             elif turn_direction == 'R':
                 self.set_direction(3)
+                self.set_row(self.row + TURN_GRIDS)
+                self.set_col(self.col + TURN_GRIDS)
         elif self.direction == 3:
             if turn_direction == 'L':
                 self.set_direction(2)
+                self.set_row(self.row + TURN_GRIDS)
+                self.set_col(self.col + TURN_GRIDS)
             elif turn_direction == 'R':
                 self.set_direction(4)
+                self.set_row(self.row + TURN_GRIDS)
+                self.set_col(self.col - TURN_GRIDS)
         elif self.direction == 4:
             if turn_direction == 'L':
                 self.set_direction(3)
+                self.set_row(self.row + TURN_GRIDS)
+                self.set_col(self.col - TURN_GRIDS)
             elif turn_direction == 'R':
                 self.set_direction(1)
+                self.set_row(self.row - TURN_GRIDS)
+                self.set_col(self.col - TURN_GRIDS)
+
+        self.update_cells_after_move()
 
     def update_cells_after_move(self):
         row = self.row

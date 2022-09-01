@@ -8,7 +8,10 @@ import constants
 
 if __name__ == "__main__":
     # construct obstacles
-    test_obstacles = [[2,9,'S'],[7,13,'N'],[17,2,'N'],[18,10,'W'],[15,18,'S'],[11,8,'W']]
+    # test_obstacles = [[2,9,'S'],[7,13,'N'],[17,2,'N'],[18,10,'W'],[15,18,'S'],[11,8,'W']]
+    # test_obstacles = [[8,13,'W'], [11,17,'S'],[15,15,'S'], [17,6,'W'],[2,19,'S'],[11,5,'N']]
+    test_obstacles = [[2,15,'S'], [6, 13,'E'], [10,17,'S'], [15,7,'W'], [18,18,'S'], [8,2,'N'], [13,9,'N'], [18,6,'N']]
+    # test_obstacles = [[7,11,'W'],[12,5,'W'], [14,15,'S'], [19,17,'S'],[19,4,'N'],[2,17,'S'],[5,7,'S'],[10,15,'S']]
     # print("Test obstacles:")
     for idx, o in enumerate(test_obstacles):
         row, col, dir = to_indices(o)

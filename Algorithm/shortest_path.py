@@ -38,30 +38,30 @@ class ShortestPath:
                 new_pos[1] += 1
         elif move == 'L':
             if curr_pos[2] == 1:  # N
-                # new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
                 new_pos[2] = 4  # W
             elif curr_pos[2] == 2:  # E
-                # new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
                 new_pos[2] = 1  # N
             elif curr_pos[2] == 3:  # S
-                # new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
                 new_pos[2] = 2  # E
             elif curr_pos[2] == 4:  # W
-                # new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
                 new_pos[2] = 3  # S
             # new_pos[2] = (curr_pos[2] + 3) % 4
         elif move == 'R':
             if curr_pos[2] == 1:  # N
-                # new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
                 new_pos[2] = 2 # E
             elif curr_pos[2] == 2:  # E
-                # new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
                 new_pos[2] = 3  # S
             elif curr_pos[2] == 3:  # S
-                # new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
                 new_pos[2] = 4  # W
             elif curr_pos[2] == 4:  # W
-                # new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
                 new_pos[2] = 1  # N
             # new_pos[2] = (curr_pos[2] + 1) % 4
 
@@ -69,8 +69,8 @@ class ShortestPath:
         return child
 
     def is_move_valid(self, curr_pos, new_pos, move):
-        # if move == 'L' or move == 'R':
-        #     return self.is_turn_valid(curr_pos, move)
+        if move == 'L' or move == 'R':
+            return self.is_turn_valid(curr_pos, move)
 
         return self.grid.robot_pos_is_valid(new_pos)
 
@@ -110,9 +110,6 @@ class ShortestPath:
         candidate_routes = list(itertools.permutations(viewing_pos))  # get all path permutations
         chosen_route = (float('inf'), None)  # total distance, path
 
-        possible = True
-
-        # print("candidate routes =", candidate_routes)
         for i, route in enumerate(candidate_routes):
             # if i == 2:
             #     break
@@ -121,13 +118,13 @@ class ShortestPath:
             paths = []
             prev = self.start
 
+            possible = True
+
             for viewpos in route:
 
-                # print("viewpos =", viewpos)
-
-                # if total_dist > chosen_route[0]:
-                #     possible = False
-                #     break
+                if total_dist > chosen_route[0]:
+                    possible = False
+                    break
 
                 pt_to_pt = Route(position=viewpos)
 
@@ -139,7 +136,7 @@ class ShortestPath:
                 if (tuple(start), tuple(goal)) not in cache:
 
                     if self.aStar(start, goal) is None:
-                        print("No path found for", start, "to", goal)
+                        # print("No path found for", start, "to", goal)
                         possible = False
                         break
 
@@ -167,7 +164,6 @@ class ShortestPath:
                     continue
                 chosen_route = (total_dist, paths)
 
-            # print("Path =", paths)
             # print("Total dist =", total_dist, "Possible =", possible)
             # print()
 
@@ -199,9 +195,6 @@ class ShortestPath:
             for col in range(self.grid.num_cols):
                 for d in range(1, 5):
                     f_score[(row, col, d)] = float('inf')
-        # g_score[start] = 0
-        # f_score[start] = self.h(start, goal)
-        # visited = [start]
 
         while not open.empty():
 
@@ -224,16 +217,16 @@ class ShortestPath:
             for move in MOVES:
                 child = self.get_child(curr, move)
 
-                # if (move == 'R' or move == 'L'):
-                #     child.g = 30
-                #
-                # if (move == 'B'):
-                #     child.g = 10
+                if (move == 'R' or move == 'L'):
+                    child.g = 2
+
+                if (move == 'B'):
+                    child.g = 1
 
                 if not self.is_move_valid(curr.pos, child.pos, move):
                     continue
 
-                child.g = curr.g + 1
+                child.g += curr.g + 1
                 child.h = self.h(child.pos, goal.pos)
                 child.f = child.g + child.h
 
