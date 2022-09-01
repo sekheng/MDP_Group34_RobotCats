@@ -1,6 +1,6 @@
 import dearpygui.dearpygui as dpg
 
-class Robot_Cats_Simulator():
+class Robot_Cats_Simulator_App():
     def __init__(self):
         self.APP_WIDTH = 1280
         self.APP_HEIGHT = 960
@@ -65,7 +65,7 @@ class Robot_Cats_Simulator():
 
 if __name__ == "__main__":
     dpg.create_context()
-    app = Robot_Cats_Simulator()
+    app = Robot_Cats_Simulator_App()
 
     #dpg.start_dearpygui()
     while dpg.is_dearpygui_running():
