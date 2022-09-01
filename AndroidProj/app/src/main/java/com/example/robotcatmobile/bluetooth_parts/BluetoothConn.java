@@ -16,10 +16,14 @@ import android.widget.Toast;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.util.Iterator;
 import java.util.UUID;
 
 public class BluetoothConn {
@@ -233,6 +237,21 @@ public class BluetoothConn {
                     incomingMessageIntent.putExtra(ChatPopup.RECEIVE_MESSAGE, incomingmessage);
 
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
+                    // we will also use the a special way which is the key of the JSON to send out messages so that it can be more focus
+                    try {
+                        JSONObject jsonObject = new JSONObject(incomingmessage);
+                        Iterator<String> jsonKeys = jsonObject.keys();
+                        while (jsonKeys.hasNext()) {
+                            String key = jsonKeys.next();
+                            Object values = jsonObject.get(key);
+                            Intent jsonIntent = new Intent(key);
+                            jsonIntent.putExtra(key, values.toString());
+                            LocalBroadcastManager.getInstance(mContext).sendBroadcast(jsonIntent);
+                        }
+                    }
+                    catch (JSONException e) {
+                        Log.e(TAG, "Error converting JSON Message: "+e.getMessage());
+                    }
                 } catch (IOException e) {
                     Log.e(TAG, "Error reading input stream. "+e.getMessage());
 

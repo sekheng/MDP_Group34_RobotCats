@@ -1,10 +1,16 @@
 package com.example.robotcatmobile;
 
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,10 +18,17 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.GridView;
+import androidx.appcompat.widget.AppCompatImageButton;
+import android.widget.TextView;
 
+import com.example.robotcatmobile.bluetooth_parts.BluetoothConn;
 import com.example.robotcatmobile.home_parts.GridLabelRecycler;
 import com.example.robotcatmobile.home_parts.GridRecycler;
+import com.example.robotcatmobile.home_parts.SpanningLinearLayoutManager;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 
 /**
  * A simple {@link Fragment} subclass.
@@ -23,6 +36,7 @@ import com.example.robotcatmobile.home_parts.GridRecycler;
  * create an instance of this fragment.
  */
 public class HomeFrag extends Fragment {
+    static final String STATUS_KEY = "status";
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -39,6 +53,16 @@ public class HomeFrag extends Fragment {
     // the horizontal labels
     RecyclerView mHorizontalLabels;
 
+    // to change the robot status text
+    TextView mStatusTxt;
+    // right button
+    AppCompatImageButton mRightButton;
+    //left button
+    AppCompatImageButton mLeftButton;
+    // up button
+    AppCompatImageButton mForwardButton;
+    // down button
+    AppCompatImageButton mBackButton;
 
     public HomeFrag() {
         // Required empty public constructor
@@ -69,6 +93,8 @@ public class HomeFrag extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+        IntentFilter statusFilter = new IntentFilter(STATUS_KEY);
+        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mStatusReceiver, statusFilter);
     }
 
     @Override
@@ -81,25 +107,93 @@ public class HomeFrag extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        /*
         // get the grid layout
         mGridLayout = view.findViewById(R.id.grid);
         GridRecycler gridRecycler = new GridRecycler();
         mGridLayout.setAdapter(gridRecycler);
         // span count in this case is the number of columns
         mGridLayout.setLayoutManager(new GridLayoutManager(getContext(), GridRecycler.COLUMNS));
-
+        mGridLayout.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            // this means that the grid layout has finished
+            int widthOfGridLayout = mGridLayout.getWidth();
+            int height = mGridLayout.getHeight();
+            //mVerticalLabels.setMinimumHeight(mGridLayout.getHeight() / 2);
+            //mHorizontalLabels.setMinimumWidth(mGridLayout.getWidth());
+        });
 
         mVerticalLabels = view.findViewById(R.id.grid_verticalLabels);
         GridLabelRecycler verticalLabelRecycler = new GridLabelRecycler(true);
         mVerticalLabels.setAdapter(verticalLabelRecycler);
-        mVerticalLabels.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL,false));
-        mVerticalLabels.setMinimumHeight(mGridLayout.getHeight());
+        mVerticalLabels.setLayoutManager(new SpanningLinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL,false));
 
         mHorizontalLabels = view.findViewById(R.id.grid_horizontalLabels);
         GridLabelRecycler horizontalLabelRecycler = new GridLabelRecycler(false);
         mHorizontalLabels.setAdapter(horizontalLabelRecycler);
-        mHorizontalLabels.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
-        int widthOfGridLayout = mGridLayout.getWidth();
-        mHorizontalLabels.setMinimumWidth(mGridLayout.getWidth());
+        mHorizontalLabels.setLayoutManager(new SpanningLinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
+         */
+        mStatusTxt = view.findViewById(R.id.robot_status);
+
+        mRightButton = view.findViewById(R.id.right_btn);
+        mRightButton.setOnClickListener(view1 -> {
+            // send the turn right button
+            // put it in a json!
+            JSONObject rightJson = new JSONObject();
+            try {
+                rightJson.put("tr","tr");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            BluetoothConn.write(rightJson.toString().getBytes());
+        });
+        mLeftButton = view.findViewById(R.id.left_btn);
+        mLeftButton.setOnClickListener(view1 -> {
+            // send the turn right button
+            // put it in a json!
+            JSONObject rightJson = new JSONObject();
+            try {
+                rightJson.put("tl","tl");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            BluetoothConn.write(rightJson.toString().getBytes());
+        });
+        mForwardButton = view.findViewById(R.id.forward_btn);
+        mForwardButton.setOnClickListener(view1 -> {
+            // send the turn right button
+            // put it in a json!
+            JSONObject rightJson = new JSONObject();
+            try {
+                rightJson.put("f","f");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            BluetoothConn.write(rightJson.toString().getBytes());
+        });
+        mBackButton = view.findViewById(R.id.back_btn);
+        mBackButton.setOnClickListener(view1 -> {
+            // send the turn right button
+            // put it in a json!
+            JSONObject rightJson = new JSONObject();
+            try {
+                rightJson.put("r","r");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            BluetoothConn.write(rightJson.toString().getBytes());
+        });
     }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mStatusReceiver);
+    }
+
+    BroadcastReceiver mStatusReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            mStatusTxt.setText(intent.getStringExtra(STATUS_KEY));
+        }
+    };
 }

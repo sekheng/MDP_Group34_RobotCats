@@ -18,14 +18,16 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // the bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
-
         bottomNavigationView.setOnItemSelectedListener(this);
-
         bottomNavigationView.setSelectedItemId(R.id.home_tab);
     }
 
 
+    /*
+    To change the fragment which will replace the main page!
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {

@@ -12,4 +12,6 @@
     <color name="colorAccent">#D9D9D9</color>
     <color name="chat_gray_background">#BEBEBE</color>
     <color name="chat_input">#332E2E</color>
+    <color name="robot_status_title">#039BE5</color>
+    <color name="colorRed">#DF1C1C</color>
 </resources>

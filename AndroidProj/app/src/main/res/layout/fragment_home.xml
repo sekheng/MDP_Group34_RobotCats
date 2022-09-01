@@ -18,21 +18,85 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid_verticalLabels"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                />
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                >
-
-            </androidx.recyclerview.widget.RecyclerView>
+                />
         </LinearLayout>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/grid_horizontalLabels"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layoutManager=".home_parts.SpanningLinearLayoutManager"
+            android:clipToPadding="false"
             />
+        <TextView
+            android:id="@+id/robot_status_title"
+            android:layout_width="140dp"
+            android:layout_height="25dp"
+            android:layout_marginStart="8dp"
+            android:background="@color/robot_status_title"
+            android:text="Robot Status"
+            android:textAlignment="center"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.571"
+
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/robot_status"
+            android:layout_width="140dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="#DBD8D4"
+            android:gravity="center"
+            android:scrollbars="vertical"
+            android:text="Not Available"
+            android:textAlignment="center"
+            android:textColor="@color/colorRed"
+            android:textSize="15sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/robot_status_title" />
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/right_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/forward_btn"
+                app:srcCompat="@drawable/ic_arrow_move_right" />
+
+            <ImageButton
+                android:id="@+id/back_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/forward_btn"
+                android:layout_marginLeft="70dp"
+                app:srcCompat="@drawable/ic_arrow_move_backward" />
+
+            <ImageButton
+                android:id="@+id/left_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:layout_constraintStart_toStartOf="parent"
+                app:srcCompat="@drawable/ic_arrow_move_left" />
+
+            <ImageButton
+                android:id="@+id/forward_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="72dp"
+                app:srcCompat="@drawable/ic_arrow_move_forward" />
+        </RelativeLayout>
     </LinearLayout>
 </FrameLayout>
