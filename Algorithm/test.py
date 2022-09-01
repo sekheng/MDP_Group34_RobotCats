@@ -19,8 +19,6 @@ if __name__ == "__main__":
     r_row, r_col, r_dir = to_indices([0, 0, 1])
     test_robot = Robot(r_row, r_col, r_dir)
 
-    print(test_obstacles)
-
     #test_robot = Robot(0, 0, 1)
 
     test_grid = Grid(test_obstacles, test_robot)
@@ -30,10 +28,10 @@ if __name__ == "__main__":
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
-    print(test_path.route[0].route)
-    #for routes in test_path.route:
-        #print(routes.route)
-    #print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
+    print(test_path.route)
+    # for routes in test_path.route:
+    #     print(routes.route)
+    # print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
 
     print ('------------------------------------------------')
 
@@ -58,7 +56,6 @@ if __name__ == "__main__":
                 test_grid.print_grid()
                 move_counter+=1
             route_counter+=1
-
 
     move_robot_on_grid(test_path)
 

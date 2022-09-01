@@ -47,7 +47,7 @@ class Obstacle:
         return matrix
     def set_viewpos(self, num_cols, num_rows):
         # set the position where car should stop to view image
-        optimal_dist = VIEW_DIST // CELL_SIZE  # min number of cells between car center and image
+        optimal_dist = math.ceil(VIEW_DIST/CELL_SIZE)  # min number of cells between car center and image
         v_row, v_col, v_dir = self.row, self.col, self.direction
 
         if self.direction == 'N':
