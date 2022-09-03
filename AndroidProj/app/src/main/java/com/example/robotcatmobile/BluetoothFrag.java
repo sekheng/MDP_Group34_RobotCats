@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Build;
@@ -83,9 +82,6 @@ public class BluetoothFrag extends Fragment {
     Set<BluetoothDevice> mArrayPairedBTDevices = new ArraySet<>();
     // the bluetooth connection to handle all the threads!
     BluetoothConn myBluetoothConn;
-
-    SharedPreferences sharedPreferences;
-    SharedPreferences.Editor editor;
 
     boolean retryConnection = false;
     Handler reconnectionHandler = new Handler();
@@ -163,7 +159,6 @@ public class BluetoothFrag extends Fragment {
 
         IntentFilter connectionStatusIntent = new IntentFilter(BluetoothConn.CONNECTION_STATUS);
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(mDisconnBR, connectionStatusIntent);
-
 
         mConnectDialog = new ProgressDialog(getContext());
         mConnectDialog.setMessage("Waiting for other device to reconnect...");
@@ -337,6 +332,7 @@ public class BluetoothFrag extends Fragment {
         getContext().unregisterReceiver(EndDiscoverBR);
         getContext().unregisterReceiver(mBondedBR);
         getContext().unregisterReceiver(mDiscoverabilityBR);
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDisconnBR);
     }
 
     // the most important
@@ -459,14 +455,12 @@ public class BluetoothFrag extends Fragment {
     };
 
 
-    private BroadcastReceiver mDisconnBR = new BroadcastReceiver() {
+    private final BroadcastReceiver mDisconnBR = new BroadcastReceiver() {
         @SuppressLint("MissingPermission")
         @Override
         public void onReceive(Context context, Intent intent) {
             BluetoothDevice mDevice = intent.getParcelableExtra("Device");
             String status = intent.getStringExtra("Status");
-            sharedPreferences = getContext().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
-            editor = sharedPreferences.edit();
 
             if(status.equals("connected")){
                 try {
@@ -477,19 +471,10 @@ public class BluetoothFrag extends Fragment {
 
                 Log.d(TAG, "mDisconnBR: Device now connected to " + mDevice.getName());
                 Toast.makeText(getContext(), "Device now connected to "+mDevice.getName(), Toast.LENGTH_LONG).show();
-                editor.putString("connStatus", "Connected to " + mDevice.getName());
-                //connStatusTextView.setText("Connected to " + mDevice.getName());
             }
             else if(status.equals("disconnected") && !retryConnection){
                 Log.d(TAG, "mDisconnBR: Disconnected from "+mDevice.getName());
                 Toast.makeText(getContext(), "Disconnected from "+mDevice.getName(), Toast.LENGTH_LONG).show();
-
-
-                sharedPreferences = getContext().getSharedPreferences("Shared Preferences", Context.MODE_PRIVATE);
-                editor = sharedPreferences.edit();
-                editor.putString("connStatus", "Disconnected");
-                editor.commit();
-
                 try {
                     mConnectDialog.show();
                 }catch (Exception e){
@@ -498,7 +483,6 @@ public class BluetoothFrag extends Fragment {
                 retryConnection = true;
                 reconnectionHandler.postDelayed(mReconnectionRunnable, 5000);
             }
-            editor.commit();
         }
     };
 

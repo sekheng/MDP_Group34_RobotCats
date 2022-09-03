@@ -2,14 +2,17 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="10dp"
-    android:id="@+id/bluetooth_item">
+    android:layout_margin="10dp"
+    android:id="@+id/bluetooth_item"
+    android:background="@color/colorAccent"
+    >
 
     <TextView
         android:id="@+id/bluetooth_detail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="bluetoothdetail" />
+        android:text="bluetoothdetail"
+        />
 
     <Button
         android:id="@+id/bluetooth_item_button"

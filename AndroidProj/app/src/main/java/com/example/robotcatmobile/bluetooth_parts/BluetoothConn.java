@@ -230,16 +230,16 @@ public class BluetoothConn {
             while(true){
                 try {
                     bytes = inStream.read(buffer);
-                    String incomingmessage = new String(buffer, 0, bytes);
-                    Log.d(TAG, "InputStream: "+ incomingmessage);
+                    String incomingMessage = new String(buffer, 0, bytes);
+                    Log.d(TAG, "InputStream: "+ incomingMessage);
 
                     Intent incomingMessageIntent = new Intent(ChatPopup.CHAT_BROADCAST);
-                    incomingMessageIntent.putExtra(ChatPopup.RECEIVE_MESSAGE, incomingmessage);
+                    incomingMessageIntent.putExtra(ChatPopup.RECEIVE_MESSAGE, incomingMessage);
 
                     LocalBroadcastManager.getInstance(mContext).sendBroadcast(incomingMessageIntent);
                     // we will also use the a special way which is the key of the JSON to send out messages so that it can be more focus
                     try {
-                        JSONObject jsonObject = new JSONObject(incomingmessage);
+                        JSONObject jsonObject = new JSONObject(incomingMessage);
                         Iterator<String> jsonKeys = jsonObject.keys();
                         while (jsonKeys.hasNext()) {
                             String key = jsonKeys.next();

@@ -3,6 +3,10 @@ package com.example.robotcatmobile.bluetooth_parts;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.robotcatmobile.R;
@@ -20,20 +25,12 @@ public class PairedRecycler extends RecyclerView.Adapter<PairedRecycler.ViewHold
     // each individual item should be in JSON
     public ArrayList<BluetoothDevice> mLocalDataSet = new ArrayList<>();
     // a flag to know is it discovered or paired
-    public boolean mIsDiscovered = false;
+    public boolean mIsDiscovered;
 
     /*
     constructor to pass bluetooth values here!
      */
     public PairedRecycler(boolean IsDiscovered) {
-        mIsDiscovered = IsDiscovered;
-    }
-
-    /*
-    constructor to create the recycler elements easily
-     */
-    public PairedRecycler(boolean IsDiscovered, ArrayList<BluetoothDevice> args) {
-        mLocalDataSet = args;
         mIsDiscovered = IsDiscovered;
     }
 
@@ -67,6 +64,27 @@ public class PairedRecycler extends RecyclerView.Adapter<PairedRecycler.ViewHold
         // need a place to reference the device!
         public BluetoothDevice mBTDevice;
 
+        private final BroadcastReceiver mDisconnBR = new BroadcastReceiver() {
+            @SuppressLint("MissingPermission")
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                BluetoothDevice mDevice = intent.getParcelableExtra("Device");
+                String status = intent.getStringExtra("Status");
+                if (mDevice.equals(mBTDevice)) {
+                    if (status.equals("connected")) {
+                        try {
+                            mDeviceButton.setText("Connected");
+                        } catch (NullPointerException e) {
+                            e.printStackTrace();
+                        }
+                    } else if (status.equals("disconnected")) {
+                        mDeviceButton.setText("Connect");
+                        mDeviceButton.setClickable(true);
+                    }
+                }
+            }
+        };
+
         @SuppressLint("MissingPermission")
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -88,6 +106,10 @@ public class PairedRecycler extends RecyclerView.Adapter<PairedRecycler.ViewHold
                 else {
                     // do connection!
                     BluetoothConn.instance.startClientThread(mBTDevice);
+                    mDeviceButton.setText("Connecting!");
+                    mDeviceButton.setClickable(false);
+                    IntentFilter connectionStatusIntent = new IntentFilter(BluetoothConn.CONNECTION_STATUS);
+                    LocalBroadcastManager.getInstance(view.getContext()).registerReceiver(mDisconnBR, connectionStatusIntent);
                 }
             });
         }
