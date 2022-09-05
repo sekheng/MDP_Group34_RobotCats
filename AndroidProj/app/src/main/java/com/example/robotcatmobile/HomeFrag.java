@@ -107,7 +107,7 @@ public class HomeFrag extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        /*
+
         // get the grid layout
         mGridLayout = view.findViewById(R.id.grid);
         GridRecycler gridRecycler = new GridRecycler();
@@ -122,16 +122,6 @@ public class HomeFrag extends Fragment {
             //mHorizontalLabels.setMinimumWidth(mGridLayout.getWidth());
         });
 
-        mVerticalLabels = view.findViewById(R.id.grid_verticalLabels);
-        GridLabelRecycler verticalLabelRecycler = new GridLabelRecycler(true);
-        mVerticalLabels.setAdapter(verticalLabelRecycler);
-        mVerticalLabels.setLayoutManager(new SpanningLinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL,false));
-
-        mHorizontalLabels = view.findViewById(R.id.grid_horizontalLabels);
-        GridLabelRecycler horizontalLabelRecycler = new GridLabelRecycler(false);
-        mHorizontalLabels.setAdapter(horizontalLabelRecycler);
-        mHorizontalLabels.setLayoutManager(new SpanningLinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL,false));
-         */
         mStatusTxt = view.findViewById(R.id.robot_status);
 
         mRightButton = view.findViewById(R.id.right_btn);

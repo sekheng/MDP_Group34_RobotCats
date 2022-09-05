@@ -16,24 +16,11 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal">
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/grid_verticalLabels"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                />
-            <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/grid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 />
         </LinearLayout>
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/grid_horizontalLabels"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            app:layoutManager=".home_parts.SpanningLinearLayoutManager"
-            android:clipToPadding="false"
-            />
         <TextView
             android:id="@+id/robot_status_title"
             android:layout_width="140dp"
