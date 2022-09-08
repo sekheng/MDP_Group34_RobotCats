@@ -1,5 +1,8 @@
 import dearpygui.dearpygui as dpg
 
+import Algorithm.SimulatorGrid
+from Algorithm.SimulatorGrid import SimulatorGrid
+
 class Robot_Cats_Simulator_App():
     def __init__(self):
         self.APP_WIDTH = 1280
@@ -10,7 +13,6 @@ class Robot_Cats_Simulator_App():
         self.grid_app = None
         self.control_app = None
         self.result_app = None
-
 
         self.application()
         self.app_configuration()
@@ -59,6 +61,7 @@ class Robot_Cats_Simulator_App():
                 dpg.add_input_text(tag='console_body', multiline=True, default_value='', width=400, height=1000, readonly=True)
 
         dpg.set_primary_window(self.main_app, True)
+        self.simulator_grid = Algorithm.SimulatorGrid.SimulatorGrid(20, 20, self.grid_app)
 
 
 
