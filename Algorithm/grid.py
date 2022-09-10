@@ -1,21 +1,29 @@
 from constants import *
-
+from obstacle import *
 
 class Grid:
 
-    def __init__(self, obstacles = None, robot = None):
+    def __init__(self, obstacles=[], robot = None):
         self.robot = robot
         self.obstacles = obstacles
         self.num_rows = int(AREA_LENGTH / CELL_SIZE)
         self.num_cols = int(AREA_WIDTH / CELL_SIZE)
         self.matrix = [[0 for _ in range(self.num_rows)] for _ in range(self.num_cols)]
+        self.mark_robot()
+        self.mark_obstacles()
+        self.print_grid()
 
     def set_obstacles(self, obstacles):
         self.obstacles = obstacles
-        self.mark_obstacles()
+        # self.mark_obstacles()
 
-    def get_obstacles(self):
-        return self.obstacles
+    def get_obstacle(self, x, y):
+        for obstacle in self.obstacles:
+            if x == obstacle.row and y == obstacle.col:
+                return obstacle
+
+    def remove_obstacle(self, obstacle):
+        self.obstacles.remove(obstacle)
 
     def mark_obstacles(self):
         for obstacle in self.obstacles:

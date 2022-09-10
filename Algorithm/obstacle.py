@@ -7,7 +7,7 @@ class Obstacle:
         # direction is N,S,E,W
         self.direction = direction
         self.cells = row, col
-        self.viewpos = None
+        self.visited = False
 
     def get_row(self):
         return self.row

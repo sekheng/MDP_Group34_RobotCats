@@ -23,3 +23,7 @@ MOVES = ['F', 'L', 'R', 'B']
 
 # obstacles markings
 OBS_MARKINGS = {'N', 'S', 'E', 'W'}
+
+# colors
+IMAGE_COL = [100,149,237]
+OBSTACLE_COL = [37, 37, 38]
