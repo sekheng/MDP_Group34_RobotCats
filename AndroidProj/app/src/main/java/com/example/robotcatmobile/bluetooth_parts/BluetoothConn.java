@@ -31,6 +31,8 @@ public class BluetoothConn {
     private static final String TAG = "DebuggingTag";
     // to get the string for connection status message
     public static final String CONNECTION_STATUS = "ConnectionStatus";
+    // to know whether it is sending the type key
+    public static final String SENDING_TYPE = "type";
 
     public static final UUID myUUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
@@ -240,13 +242,21 @@ public class BluetoothConn {
                     // we will also use the a special way which is the key of the JSON to send out messages so that it can be more focus
                     try {
                         JSONObject jsonObject = new JSONObject(incomingMessage);
-                        Iterator<String> jsonKeys = jsonObject.keys();
-                        while (jsonKeys.hasNext()) {
-                            String key = jsonKeys.next();
-                            Object values = jsonObject.get(key);
-                            Intent jsonIntent = new Intent(key);
-                            jsonIntent.putExtra(key, values.toString());
+                        if (jsonObject.has(SENDING_TYPE)) {
+                            Intent jsonIntent = new Intent(SENDING_TYPE);
+                            jsonIntent.putExtra(SENDING_TYPE, jsonObject.toString());
+                            // this is to just send the whole JSON string across
                             LocalBroadcastManager.getInstance(mContext).sendBroadcast(jsonIntent);
+                        }
+                        else {
+                            Iterator<String> jsonKeys = jsonObject.keys();
+                            while (jsonKeys.hasNext()) {
+                                String key = jsonKeys.next();
+                                Object values = jsonObject.get(key);
+                                Intent jsonIntent = new Intent(key);
+                                jsonIntent.putExtra(key, values.toString());
+                                LocalBroadcastManager.getInstance(mContext).sendBroadcast(jsonIntent);
+                            }
                         }
                     }
                     catch (JSONException e) {
@@ -302,9 +312,11 @@ public class BluetoothConn {
     }
 
     public static void write(byte[] out){
-        ConnectedThread tmp;
+        if (BluetoothConnectionStatus) {
+            ConnectedThread tmp;
 
-        Log.d(TAG, "write: Write is called." );
-        mConnectedThread.write(out);
+            Log.d(TAG, "write: Write is called.");
+            mConnectedThread.write(out);
+        }
     }
 }

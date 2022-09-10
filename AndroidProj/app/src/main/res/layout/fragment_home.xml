@@ -5,7 +5,6 @@
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".MainActivity">
-
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -20,6 +19,39 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 />
+            <RadioGroup
+                android:id="@+id/toggle_groups"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <androidx.appcompat.widget.AppCompatToggleButton
+                    android:id="@+id/robot_toggle"
+android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="SETTING ROBOT"
+                    android:textOff="SET ROBOT"
+                    />
+                <androidx.appcompat.widget.AppCompatToggleButton
+                android:id="@+id/obstacle_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="SETTING OBSTACLE"
+                    android:textOff="SET OBSTACLE"
+                    />
+                <androidx.appcompat.widget.AppCompatToggleButton
+                    android:id="@+id/direction_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="SETTING DIRECTION"
+                    android:textOff="SET DIRECTION"
+                    />
+                <androidx.appcompat.widget.AppCompatToggleButton
+                    android:id="@+id/type_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="SETTING TYPE"
+                    android:textOff="SET TYPE"
+                    />
+            </RadioGroup>
         </LinearLayout>
         <TextView
             android:id="@+id/robot_status_title"
@@ -86,4 +118,11 @@
                 app:srcCompat="@drawable/ic_arrow_move_forward" />
         </RelativeLayout>
     </LinearLayout>
+    <androidx.appcompat.widget.AppCompatImageView
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:src="@drawable/robot_img"
+        android:id="@+id/robot"
+        android:visibility="gone"
+        />
 </FrameLayout>

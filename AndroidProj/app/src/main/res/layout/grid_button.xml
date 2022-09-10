@@ -7,6 +7,51 @@
         android:id="@+id/grid_button"
         android:layout_width="30dp"
         android:layout_height="30dp"
-        android:background="@drawable/grid_button"
+        android:textColor="@color/colorAccent"
+        android:background="@drawable/grid_design"
+        />
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/grid_symbol"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_centerInParent="true"
+        android:elevation="2dp"
+        android:visibility="invisible"
+        />
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/grid_top_border"
+        android:layout_width="30dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="1dp"
+        android:elevation="2dp"
+        android:background="@color/colorRed"
+        android:visibility="invisible"
+        />
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/grid_left_border"
+        android:layout_width="4dp"
+        android:layout_height="30dp"
+        android:layout_marginStart="1dp"
+        android:elevation="2dp"
+        android:background="@color/colorRed"
+        android:visibility="invisible"
+        />
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/grid_right_border"
+        android:layout_width="4dp"
+        android:layout_height="30dp"
+        android:background="@color/colorRed"
+        android:elevation="2dp"
+        android:layout_marginStart="25dp"
+        android:visibility="invisible"
+        />
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/grid_bottom_border"
+        android:layout_width="30dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="25dp"
+        android:elevation="2dp"
+        android:background="@color/colorRed"
+        android:visibility="invisible"
         />
 </RelativeLayout>

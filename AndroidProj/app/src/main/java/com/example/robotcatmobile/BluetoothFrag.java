@@ -48,22 +48,10 @@ import java.util.Set;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link BluetoothFrag#newInstance} factory method to
  * create an instance of this fragment.
  */
 public class BluetoothFrag extends Fragment {
-    private static final String TAG = "Bluetooth Frag";
-
-
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-    private static final int REQUEST_ENABLE_BT = 1;
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    public static final String TAG = "Bluetooth Frag";
 
     // for the paired UI recycler
     RecyclerView mPairedRecycler;
@@ -83,49 +71,8 @@ public class BluetoothFrag extends Fragment {
     // the bluetooth connection to handle all the threads!
     BluetoothConn myBluetoothConn;
 
-    boolean retryConnection = false;
-    Handler reconnectionHandler = new Handler();
-
-    ProgressDialog mConnectDialog;
-
-    Runnable mReconnectionRunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-                if (!BluetoothConn.BluetoothConnectionStatus) {
-                    // start connection and pray hard
-                    myBluetoothConn.startClientThread(BluetoothConn.instance.mDevice);
-                    Toast.makeText(getContext(), "Reconnection Success", Toast.LENGTH_SHORT).show();
-                }
-                reconnectionHandler.removeCallbacks(mReconnectionRunnable);
-                retryConnection = false;
-            } catch (Exception e) {
-                Toast.makeText(getContext(), "Failed to reconnect, trying in 5 second", Toast.LENGTH_SHORT).show();
-            }
-        }
-    };
-
-
     public BluetoothFrag() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment bluetooth.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static BluetoothFrag newInstance(String param1, String param2) {
-        BluetoothFrag fragment = new BluetoothFrag();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
     }
 
     @Override
@@ -133,10 +80,6 @@ public class BluetoothFrag extends Fragment {
         super.onCreate(savedInstanceState);
         // fun fact: there is nothing in there for now......
         // and im not sure how to populate the arguments in there
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
         // this discover intent is to be notified when the bluetooth device is found
         IntentFilter discoverDevicesIntent = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         getContext().registerReceiver(BluetoothDeviceFound, discoverDevicesIntent);
@@ -156,19 +99,6 @@ public class BluetoothFrag extends Fragment {
 
         IntentFilter discoverIntent = new IntentFilter(BluetoothAdapter.ACTION_SCAN_MODE_CHANGED);
         getContext().registerReceiver(mDiscoverabilityBR, discoverIntent);
-
-        IntentFilter connectionStatusIntent = new IntentFilter(BluetoothConn.CONNECTION_STATUS);
-        LocalBroadcastManager.getInstance(getContext()).registerReceiver(mDisconnBR, connectionStatusIntent);
-
-        mConnectDialog = new ProgressDialog(getContext());
-        mConnectDialog.setMessage("Waiting for other device to reconnect...");
-        mConnectDialog.setCancelable(false);
-        mConnectDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
     }
 
     /*
@@ -332,7 +262,6 @@ public class BluetoothFrag extends Fragment {
         getContext().unregisterReceiver(EndDiscoverBR);
         getContext().unregisterReceiver(mBondedBR);
         getContext().unregisterReceiver(mDiscoverabilityBR);
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDisconnBR);
     }
 
     // the most important
@@ -455,35 +384,5 @@ public class BluetoothFrag extends Fragment {
     };
 
 
-    private final BroadcastReceiver mDisconnBR = new BroadcastReceiver() {
-        @SuppressLint("MissingPermission")
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            BluetoothDevice mDevice = intent.getParcelableExtra("Device");
-            String status = intent.getStringExtra("Status");
-
-            if(status.equals("connected")){
-                try {
-                    mConnectDialog.dismiss();
-                } catch(NullPointerException e){
-                    e.printStackTrace();
-                }
-
-                Log.d(TAG, "mDisconnBR: Device now connected to " + mDevice.getName());
-                Toast.makeText(getContext(), "Device now connected to "+mDevice.getName(), Toast.LENGTH_LONG).show();
-            }
-            else if(status.equals("disconnected") && !retryConnection){
-                Log.d(TAG, "mDisconnBR: Disconnected from "+mDevice.getName());
-                Toast.makeText(getContext(), "Disconnected from "+mDevice.getName(), Toast.LENGTH_LONG).show();
-                try {
-                    mConnectDialog.show();
-                }catch (Exception e){
-                    Log.d(TAG, "BluetoothPopUp: mBroadcastReceiver5 Dialog show failure");
-                }
-                retryConnection = true;
-                reconnectionHandler.postDelayed(mReconnectionRunnable, 5000);
-            }
-        }
-    };
 
 }
