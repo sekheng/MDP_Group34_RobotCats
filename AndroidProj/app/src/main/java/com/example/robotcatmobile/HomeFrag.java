@@ -10,12 +10,15 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatToggleButton;
 import androidx.fragment.app.Fragment;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
+import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +33,10 @@ import com.example.robotcatmobile.home_parts.SET_GRID_STATE;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
+import java.sql.Timestamp;
+import java.util.GregorianCalendar;
 
 
 /**
@@ -65,6 +72,20 @@ public class HomeFrag extends Fragment {
     AppCompatImageButton mBackButton;
     // radio group for obstacles
     RadioGroup mToggleGroups;
+    // button for explore
+    AppCompatButton mExploreButton;
+    // textview for explore
+    TextView mExploreText;
+    // button for fastest
+    AppCompatButton mFastestButton;
+    // textview for fastest
+    TextView mFastestText;
+    // get the time now variable
+    long mStartTime;
+    // thread to handle it
+    Handler mStopWatchThread;
+    // boolean flags to know whether it runs
+    boolean mIsFastest = false;
 
     public HomeFrag() {
         // Required empty public constructor
@@ -204,12 +225,77 @@ public class HomeFrag extends Fragment {
                 }
             );
         }
+
+        mExploreButton = view.findViewById(R.id.explore_button);
+        mExploreButton.setOnClickListener(view1 -> {
+            if (!mIsFastest && mStopWatchThread != null) {
+                // this means that it is toggling start/stop
+                stopTime();
+            }
+            else {
+                mIsFastest = false;
+                // set the status!
+                startTime("exploring");
+            }
+        });
+        mExploreText = view.findViewById(R.id.explore_text);
+        mFastestButton = view.findViewById(R.id.fastest_button);
+        mFastestButton.setOnClickListener(view1 -> {
+            if (mIsFastest && mStopWatchThread != null) {
+                // this means that it is toggling start/stop
+                stopTime();
+            }
+            else {
+                mIsFastest = true;
+                startTime("fastest");
+            }
+        });
+        mFastestText = view.findViewById(R.id.fastest_text);
+    }
+
+    void stopTime() {
+        mStopWatchThread.removeCallbacks(runnable);
+        mStopWatchThread = null;
+        JSONObject jsonObject = new JSONObject();
+        try {
+            // to send to the robot that it has stopped
+            jsonObject.put(STATUS_KEY, "idle");
+            BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void startTime(String statusStr) {
+        Intent statusIntent = new Intent(STATUS_KEY);
+        statusIntent.putExtra(STATUS_KEY, statusStr);
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(statusIntent);
+        // and send the text over in bluetooth
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put(STATUS_KEY, statusStr);
+            BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        if (mStopWatchThread == null) {
+            mStopWatchThread = new Handler();
+        }
+        else {
+            mStopWatchThread.removeCallbacks(runnable);
+        }
+        mStopWatchThread.postDelayed(runnable, 0);
+        mStartTime = SystemClock.uptimeMillis();
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mStatusReceiver);
+        if (mStopWatchThread != null) {
+            mStopWatchThread.removeCallbacks(runnable);
+            mStopWatchThread = null;
+        }
     }
 
     BroadcastReceiver mStatusReceiver = new BroadcastReceiver() {
@@ -218,4 +304,26 @@ public class HomeFrag extends Fragment {
             mStatusTxt.setText(intent.getStringExtra(STATUS_KEY));
         }
     };
+
+    //Stop Watch logic
+    public  Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            long timeInMilliseconds = SystemClock.uptimeMillis()-mStartTime;
+            int Seconds=(int)(timeInMilliseconds/1000);
+            int Minutes=Seconds/60;
+            Seconds%=60;
+            int MilliSeconds=(int)(timeInMilliseconds%1000);
+            String text = Minutes + ":" +String.format("%02d",Seconds)+":"
+                    +String.format("%03d",MilliSeconds);
+            if (mIsFastest) {
+                mFastestText.setText(text);
+            }
+            else {
+                mExploreText.setText(text);
+            }
+            mStopWatchThread.postDelayed(this,0);
+        }
+    };
+
 }

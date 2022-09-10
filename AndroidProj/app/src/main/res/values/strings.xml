@@ -8,4 +8,7 @@
     <string name="discover">Discover</string>
     <string name="send">send</string>
     <string name="chat_window">Chat Window</string>
+    <string name="robot_status">Robot Status</string>
+    <string name="fastest">Fastest</string>
+    <string name="explore">EXPLORE</string>
 </resources>
