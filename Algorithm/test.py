@@ -19,22 +19,23 @@ if __name__ == "__main__":
         # print(row, col, dir)
 
     # construct robot
-    r_row, r_col, r_dir = to_indices([0, 0, 1])
+    r_row, r_col, r_dir = to_indices([1, 1, 1])
     test_robot = Robot(r_row, r_col, r_dir)
 
     #test_robot = Robot(0, 0, 1)
 
     test_grid = Grid(test_obstacles, test_robot)
-    test_grid.mark_obstacles()
-    test_grid.mark_robot()
-    test_grid.print_grid()
+    # test_grid.mark_obstacles()
+    # test_grid.mark_robot()
+    # test_grid.print_grid()
+    print(test_grid.robot)
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
     print(test_path.route)
-    # for routes in test_path.route:
-    #     print(routes.route)
-    # print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
+    for routes in test_path.route:
+        print(routes.route)
+    print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
 
     print ('------------------------------------------------')
 
@@ -51,9 +52,9 @@ if __name__ == "__main__":
                 print('---------------------------------------')
                 test_grid.delete_cur_robot_position()
                 if move == 'F' or move == 'B':
-                    test_robot.move(move)
+                    test_robot.algo_move(move)
                 elif move == 'L' or move == 'R':
-                    test_robot.turn(move)
+                    test_robot.algo_turn(move)
 
                 test_grid.mark_robot()
                 test_grid.print_grid()

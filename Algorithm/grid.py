@@ -26,9 +26,10 @@ class Grid:
         self.obstacles.remove(obstacle)
 
     def mark_obstacles(self):
-        for obstacle in self.obstacles:
+        for i, obstacle in enumerate(self.obstacles):
             obstacle.mark(self.matrix)
             obstacle.set_viewpos(self.num_cols, self.num_rows)
+            print(f"Algo obstacle {i} = {obstacle.cells}, Algo viewpos {i} = {obstacle.viewpos}")
 
     def mark_robot(self):
         self.robot.mark(self.matrix)

@@ -23,14 +23,12 @@ class SimulatorGrid():
 
         self.cells = []
         self.robot_direction = None
-
-        for o in obstacles:
-            indices_internal(o)
         self.obstacles = obstacles
 
         self.on_cell_click_callback = None
 
         self.drawlist = None
+        self.obstacle_directions = []
         self.initialise_grid()
 
     def initialise_grid(self):
@@ -74,22 +72,22 @@ class SimulatorGrid():
                 parent=self.drawlist
             )
 
-        with dpg.draw_node(tag="robot_direction", parent=self.drawlist) as robot_direction:
+        with dpg.draw_node(tag="robot_direction", parent=self.drawlist) as item:
             dpg.draw_triangle(
-                # [0, 0],
-                # [self.cell_size * 3, 0],
-                # [self.cell_size * (3 / 2), -self.cell_size * (3 / 2)],
-                [0, 850],
-                [self.cell_size * 3, 850], #robot size on grid is 3by3, so the three points will be (0,0), (3,0) and (1.5,1.5) if facing north
-                [self.cell_size * (3 / 2), 850-(self.cell_size * 3)],
+                [0, 0],
+                [self.cell_size * 3, 0],
+                [self.cell_size * (3 / 2), -self.cell_size * 3],
+                # [0, 850],
+                # [self.cell_size * 3, 850], #robot size on grid is 3by3, so the three points will be (0,0), (3,0) and (1.5,1.5) if facing north
+                # [self.cell_size * (3 / 2), 850-(self.cell_size * 3)],
                 color=[0, 0, 0],
                 fill=[0, 255, 0],
                 before='grid'
             )
 
-            self.robot_direction = robot_direction
-            self.update_robot_position(0, 0, 'S')
-            self.configure_obstacles()
+            self.robot_direction = item
+        self.update_robot_position(1, 1, 1)
+        self.configure_obstacles(obstacles=self.obstacles)
 
         # configure click events
         with dpg.handler_registry():
@@ -109,29 +107,37 @@ class SimulatorGrid():
         x_offset = 0
         y_offset = 0
 
-        if direction == 'N':
-            y_offset = self.cell_size * -19
-        elif direction == 'E':
-            x_offset = self.cell_size * 20
-            y_offset = self.cell_size * -2
-        elif direction == 'S':
-            x_offset = self.cell_size * 3
-            y_offset = self.cell_size * 18
-        elif direction == 'W':
-            x_offset = self.cell_size * -17
-            y_offset = self.cell_size
+        if direction == 1:
+            x_offset = -self.cell_size
+            y_offset = self.cell_size * 2
+        elif direction == 3:
+            x_offset = self.cell_size * 2
+            y_offset = -self.cell_size
+        elif direction == 2:
+            x_offset = -self.cell_size
+            y_offset = -self.cell_size
+        elif direction == 4:
+            x_offset = self.cell_size * 2
+            y_offset = self.cell_size * 2
 
         angle = pi * self.direction_to_angle(direction) / 180.0
         x, y = self.get_internal_pos(x, y)
         position = [(x * self.cell_size + x_offset), (y * self.cell_size + y_offset)]
+
         translate = dpg.create_translation_matrix(position)
-        rotation = dpg.create_rotation_matrix(angle=-angle, axis=[0, 0, 1])
+        rotation = dpg.create_rotation_matrix(angle=-angle, axis=[0, 0, -1])
 
-        dpg.apply_transform("robot_direction", translate * rotation)
+        dpg.apply_transform(self.robot_direction, translate * rotation)
 
-    def configure_obstacles(self):
+    def configure_obstacles(self, obstacles):
 
-        for o in self.obstacles:
+        # for item in self.obstacle_directions:
+        #     print("item =", item)
+        #     dpg.delete_item(item)
+        #
+        # self.obstacle_directions.clear()
+
+        for o in obstacles:
             if not dpg.does_item_exist(str(o)):
                 with dpg.draw_node(tag=str(o), parent=self.drawlist) as item:
                     dpg.draw_rectangle(
@@ -140,6 +146,8 @@ class SimulatorGrid():
                         color=IMAGE_COL,
                         fill=IMAGE_COL,
                     )
+
+                    # self.obstacle_directions.append(item)
 
             # apply transform (cause we only create the direction rect when obstacale is added)
             angle = pi * self.direction_to_angle(o.direction) / 180.0
@@ -158,23 +166,18 @@ class SimulatorGrid():
                 x_offset = 5
 
             translate = ((o.row * self.cell_size + x_offset), (o.col * self.cell_size + y_offset))
-
             dpg.apply_transform(str(o), dpg.create_translation_matrix(translate) * dpg.create_rotation_matrix(angle=angle, axis=[0, 0, -1]))
 
-        for o in self.obstacles:
-            color = OBSTACLE_COL
-
-            if o.visited:
-                color = IMAGE_COL
-
+        for o in obstacles:
+            print(f"Setting color for {o.row}, {o.col}")
             self.set_color(o.row,
                            o.col,
-                           color=color,
+                           color=OBSTACLE_COL,
                            flip=True)
 
-    def on_cell_click(self, callback):
-        self.on_cell_click_callback = callback
-        print(callback)
+    # def on_cell_click(self, callback):
+    #     self.on_cell_click_callback = callback
+    #     print(callback)
 
     def get_tag(self, x, y, flip=True) -> str:
         return f"{self.get_internal_pos(x, y)}" if flip else f"{(x, y)}"
@@ -183,6 +186,7 @@ class SimulatorGrid():
         return (x, self.rows - y - 1)
 
     def direction_to_angle(self, direction):
+        angle = 0
         if direction == 'N':
             angle = 0
         elif direction == 'E':

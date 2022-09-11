@@ -9,6 +9,8 @@ class Obstacle:
         self.cells = row, col
         self.visited = False
 
+    def __str__(self):
+        return f"Obstacle({self.row, self.col, self.direction})"
     def get_row(self):
         return self.row
 
@@ -33,7 +35,6 @@ class Obstacle:
     def mark(self, matrix):
 
         # draw obstacle itself
-        print(self.row, self.col)
         matrix[self.row][self.col] = self.direction
 
         # demarcate boundaries around obstacle (10cm)

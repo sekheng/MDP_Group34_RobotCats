@@ -1,5 +1,6 @@
 from constants import *
 from obstacle import Obstacle
+from robot import Robot
 
 def to_indices(coords):
     # this method takes in coordinates from input into simulator,
@@ -15,11 +16,17 @@ def to_indices(coords):
     return [new_x, new_y, d]
 
 
-def indices_internal(Obstacle):
+def obs_indices_internal(obj: Obstacle):
     # swaps between row and col used in algorithm
     # and positions used in simulator
-    Obstacle.row, Obstacle.col = Obstacle.col, Obstacle.row
+    new_row, new_col = obj.col, obj.row
+    return Obstacle(new_row, new_col, obj.direction)
 
+def robot_indices_internal(obj: Robot):
+    # swaps between row and col used in algorithm
+    # and positions used in simulator
+    new_row, new_col = obj.col, obj.row
+    return Robot(new_row, new_col, obj.direction)
 
 def set_cells(row, col, direction):
     # obstacle cells
