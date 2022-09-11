@@ -256,6 +256,7 @@ public class HomeFrag extends Fragment {
     void stopTime() {
         mStopWatchThread.removeCallbacks(runnable);
         mStopWatchThread = null;
+        sendStatusValue("idle");
         JSONObject jsonObject = new JSONObject();
         try {
             // to send to the robot that it has stopped
@@ -267,9 +268,7 @@ public class HomeFrag extends Fragment {
     }
 
     void startTime(String statusStr) {
-        Intent statusIntent = new Intent(STATUS_KEY);
-        statusIntent.putExtra(STATUS_KEY, statusStr);
-        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(statusIntent);
+        sendStatusValue(statusStr);
         // and send the text over in bluetooth
         JSONObject jsonObject = new JSONObject();
         try {
@@ -286,6 +285,13 @@ public class HomeFrag extends Fragment {
         }
         mStopWatchThread.postDelayed(runnable, 0);
         mStartTime = SystemClock.uptimeMillis();
+    }
+
+    void sendStatusValue(String statusVal) {
+        Intent statusIntent = new Intent(STATUS_KEY);
+        statusIntent.putExtra(STATUS_KEY, statusVal);
+        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(statusIntent);
+
     }
 
     @Override
