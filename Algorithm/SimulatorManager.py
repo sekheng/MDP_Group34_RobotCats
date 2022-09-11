@@ -21,14 +21,16 @@ class SimulatorManager():
         self.robot = None
         self.obstacles = []
 
+        # Initialize robot and obstacles for algorithm grid
         algo_obstacles = []
         for o in TEST_OBSTACLES:
             row, col, d = to_indices(o)
             algo_obstacles.append(Obstacle(row, col, d))
-        r_row, r_col, r_d = to_indices([1, 1, 1])  # For algorithm grid robot
+        r_row, r_col, r_d = to_indices([1, 1, 1])  # For algorithm robot
         algo_robot = Robot(r_row, r_col, r_d)
         self.algo_grid = Grid(obstacles=algo_obstacles, robot=algo_robot)
 
+        # Convert robot and obstacle coordinates from algorithm coordinates into simulator coordinates
         self.set_robot()
         self.set_obstacles()
         self.grid = SimulatorGrid(grid_app=result_app, obstacles=self.obstacles)
@@ -39,26 +41,31 @@ class SimulatorManager():
         self.total_distance = 0
         self.timer = 0
 
-        dpg.configure_item("start", callback=self.start)
+        dpg.configure_item("start", callback=self.on_click_start)
 
     def set_robot(self):
         # updates simulator's robot position based on algorithm's robot
         self.robot = robot_indices_internal(self.algo_grid.robot)
 
     def set_obstacles(self):
+        # updates simulator's obstacle positions based on algorithm's obstacles
         self.obstacles.clear()
         for o in self.algo_grid.obstacles:
-            self.obstacles.append(obs_indices_internal(o))
+            sim_obstacle = obs_indices_internal(o)
+            sim_obstacle.viewpos = o.viewpos
+            self.obstacles.append(sim_obstacle)
     def update(self):
         self.timer += 0.05
 
-    def start(self):
+    def on_click_start(self):
 
         sp = ShortestPath(self.algo_grid)
+
+        start_time = perf_counter()
+
         sp.get_shortest_path()
         car = self.algo_grid.robot
-
-        print("Initial direction robot is facing is: " + str(self.robot.direction))
+        self.console_writeline("Initial direction robot is facing is: " + str(self.robot.direction))
         move_counter = 1
         route_counter = 1
         dist_travelled = 0
@@ -76,19 +83,32 @@ class SimulatorManager():
 
                 self.set_robot()
                 self.redraw()
-                sleep(3)
+                sleep(0.5)
                 move_counter += 1
 
             # TODO: Mark obstacle as visited only when image is recognised successfully
+            # TODO: If obstacle cannot be reached, add route to it at the end of sp.route to try again at the end
+            self.console_writeline("Recognizing image...")
+            sleep(2)  # Capture image
+            self.mark_visited(curr_route.position)
             dist_travelled += curr_route.distance
             self.console_writeline(f"Distance travelled = {dist_travelled}")
-            sleep(5)  # Capture image
             route_counter += 1
 
+        self.redraw()
         self.total_distance = sp.distance
         if dist_travelled == self.total_distance:
-            self.console_writeline(f"Path complete! Total distance = {self.total_distance}")
+            end_time = perf_counter()
+            self.console_writeline(f"Path complete! Total distance/cost = {self.total_distance}")
+            self.console_writeline(f"Time taken: {end_time - start_time:.2f}")
 
+    def mark_visited(self, viewpos):
+
+        for o in self.obstacles:
+            if viewpos == o.viewpos:
+                o.visited = True
+                return
+        print("Not found")
 
     def console_writeline(self, msg):
         self.console += f"{msg}\n"
@@ -106,14 +126,9 @@ class SimulatorManager():
                 self.grid.set_color(x, y)
 
         for o in self.obstacles:
-            color = OBSTACLE_COL
-
-            if o.visited:
-                color = IMAGE_COL
-
             self.grid.set_color(o.row,
                                 o.col,
-                                color=color,
+                                color=OBSTACLE_COL,
                                 flip=True)
 
         self.grid.configure_obstacles(self.obstacles)

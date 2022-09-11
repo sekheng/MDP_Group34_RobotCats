@@ -221,12 +221,12 @@ class ShortestPath:
                     child.g = 20
 
                 if (move == 'B'):
-                    child.g = 10
+                    child.g = 5
 
                 if not self.is_move_valid(curr.pos, child.pos, move):
                     continue
 
-                child.g += curr.g + 1
+                child.g += curr.g + 10
                 child.h = self.h(child.pos, goal.pos)
                 child.f = child.g + child.h
 

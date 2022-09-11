@@ -25,8 +25,6 @@ class SimulatorGrid():
         self.robot_direction = None
         self.obstacles = obstacles
 
-        self.on_cell_click_callback = None
-
         self.drawlist = None
         self.obstacle_directions = []
         self.initialise_grid()
@@ -86,7 +84,7 @@ class SimulatorGrid():
             )
 
             self.robot_direction = item
-        self.update_robot_position(1, 1, 1)
+        self.update_robot_position(1, 18, 1)
         self.configure_obstacles(obstacles=self.obstacles)
 
         # configure click events
@@ -121,7 +119,6 @@ class SimulatorGrid():
             y_offset = self.cell_size * 2
 
         angle = pi * self.direction_to_angle(direction) / 180.0
-        x, y = self.get_internal_pos(x, y)
         position = [(x * self.cell_size + x_offset), (y * self.cell_size + y_offset)]
 
         translate = dpg.create_translation_matrix(position)
@@ -131,11 +128,10 @@ class SimulatorGrid():
 
     def configure_obstacles(self, obstacles):
 
-        # for item in self.obstacle_directions:
-        #     print("item =", item)
-        #     dpg.delete_item(item)
-        #
-        # self.obstacle_directions.clear()
+        for item in self.obstacle_directions:
+            dpg.delete_item(item)
+
+        self.obstacle_directions.clear()
 
         for o in obstacles:
             if not dpg.does_item_exist(str(o)):
@@ -169,10 +165,12 @@ class SimulatorGrid():
             dpg.apply_transform(str(o), dpg.create_translation_matrix(translate) * dpg.create_rotation_matrix(angle=angle, axis=[0, 0, -1]))
 
         for o in obstacles:
-            print(f"Setting color for {o.row}, {o.col}")
+            color = OBSTACLE_COL
+            if o.visited:
+                color = IMAGE_COL
             self.set_color(o.row,
                            o.col,
-                           color=OBSTACLE_COL,
+                           color=color,
                            flip=True)
 
     # def on_cell_click(self, callback):
@@ -187,13 +185,13 @@ class SimulatorGrid():
 
     def direction_to_angle(self, direction):
         angle = 0
-        if direction == 'N':
+        if direction == 1 or direction == 'N':
             angle = 0
-        elif direction == 'E':
+        elif direction == 2 or direction == 'E':
             angle = 90
-        elif direction == 'S':
+        elif direction == 3 or direction == 'S':
             angle = 180
-        elif direction == 'W':
+        elif direction == 4 or direction == 'W':
             angle = 270
         return angle
 
