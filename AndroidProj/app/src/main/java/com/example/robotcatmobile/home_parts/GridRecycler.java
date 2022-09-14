@@ -30,6 +30,7 @@ import com.example.robotcatmobile.bluetooth_parts.BluetoothConn;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 /**
@@ -50,6 +51,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     public static final String SYMBOL_KEY = "symbol";
     public static final String X_KEY = "x";
     public static final String Y_KEY = "y";
+    public static final String ROBOT_VALUE = "robot";
+    public static final String OBSTACLE_VALUE = "obstacle";
 
     public static final int COLUMNS = 15;
 
@@ -102,7 +105,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                         }
                     }
                     if (x < COLUMNS && y < ROWS) {
-                        if (type.equalsIgnoreCase("obstacle")) {
+                        if (type.equalsIgnoreCase(OBSTACLE_VALUE)) {
                             // then this is an obstacle
                             String symbol = json.getString(SYMBOL_KEY);
                             // access the grid straight away
@@ -110,7 +113,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                             theGrid.setObstacle(true);
                             theGrid.setObstacleImage(symbol);
                             theGrid.setObstacleDirection(curDir);
-                        } else if (type.equalsIgnoreCase("robot")) {
+
+                        } else if (type.equalsIgnoreCase(ROBOT_VALUE)) {
                             placeRobot(x,y);
                             mAngleOfRobot = curDir.getValue();
                             // we can reuse and fake it
@@ -138,7 +142,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                         rotateRobot(-90);
                         break;
                     case HomeFrag.ROBOT_RIGHT:
-                        rotateRobot(90);;
+                        rotateRobot(90);
                         break;
                     case HomeFrag.ROBOT_REVERSE:
                         moveRobot(false);
@@ -304,17 +308,28 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                                 break;
                         }
                         placeRobot(x, y);
+                        // and then send a bluetooth message to say which grid location it is placed!
+                        JSONObject jsonObject = new JSONObject();
+                        try {
+                            jsonObject.put(BluetoothConn.SENDING_TYPE,ROBOT_VALUE);
+                            jsonObject.put(X_KEY,mRobotX);
+                            jsonObject.put(Y_KEY,mRobotY);
+                            jsonObject.put(DIRECTION_KEY,mRobotDirection);
+                            BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
                         break;
                     case OBSTACLE:
-                        setObstacle(!mIsObstacle);
+                        setObstacleBluetooth(!mIsObstacle,"",Direction.NONE);
                         break;
                     case TYPE:
                         if (mIsObstacle) {
                             // then create the alert dialog to set it
                             AlertDialog.Builder alertBuilder = new AlertDialog.Builder(itemView.getContext());
                             alertBuilder.setTitle("Choose Obstacle");
-                            alertBuilder.setItems(mAllObstacleSymbols, (DialogInterface.OnClickListener) (dialogInterface, i) -> {
-                                setObstacleImage(mAllObstacleSymbols[i]);
+                            alertBuilder.setItems(mAllObstacleSymbols, (dialogInterface, i) -> {
+                                setObstacleBluetooth(mIsObstacle,mAllObstacleSymbols[i],mDirection);
                             });
                             AlertDialog dialog = alertBuilder.create();
                             dialog.show();
@@ -325,8 +340,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                             // create the alert dialog to set the direction
                             AlertDialog.Builder alertBuilder = new AlertDialog.Builder(itemView.getContext());
                             alertBuilder.setTitle("Choose Direction");
-                            alertBuilder.setItems(getNames(Direction.class), (DialogInterface.OnClickListener) (dialogInterface, i) -> {
-                                setObstacleDirection(Direction.values()[i]);
+                            alertBuilder.setItems(getNames(Direction.class), (dialogInterface, i) -> {
+                                setObstacleBluetooth(mIsObstacle,mObstacleSymbol,Direction.values()[i]);
                             });
                             AlertDialog dialog = alertBuilder.create();
                             dialog.show();
@@ -355,11 +370,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                         return false;
                     case DragEvent.ACTION_DROP: {
                         // then set the current one as obstacle
-                        setObstacle(true);
                         ViewHolder origin = (ViewHolder) dragEvent.getLocalState();
-                        // and copy other necessary values over to it
-                        setObstacleDirection(origin.mDirection);
-                        setObstacleImage(origin.mObstacleSymbol);
+                        setObstacleBluetooth(true, origin.mObstacleSymbol,origin.mDirection);
                         // Returns true; the value is ignored.
                         return true;
                     }
@@ -368,7 +380,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                         if (hasDragEndedCall) {
                             ViewHolder origin = (ViewHolder) dragEvent.getLocalState();
                             // then the origin set to be false
-                            origin.setObstacle(hasDragEndedCall = false);
+                            origin.setObstacleBluetooth(hasDragEndedCall = false, "", Direction.NONE);
                         }
                         return true;
                     }
@@ -482,6 +494,26 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 mGridButton.setText(obstacleLook);
             }
             mObstacleSymbol = obstacleLook;
+        }
+
+        void setObstacleBluetooth(boolean isObstacle,
+                                  String imageStr,
+                                  Direction direction) {
+            // just for the grid button to send the obstacle over
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put(BluetoothConn.SENDING_TYPE,OBSTACLE_VALUE);
+                jsonObject.put(X_KEY,mX);
+                jsonObject.put(Y_KEY,mY);
+                jsonObject.put(SYMBOL_KEY, imageStr);
+                jsonObject.put(DIRECTION_KEY, direction.toString());
+                BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            setObstacle(isObstacle);
+            setObstacleImage(imageStr);
+            setObstacleDirection(direction);
         }
 
         public void setObstacle(boolean isObstacle) {
