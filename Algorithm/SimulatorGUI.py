@@ -19,7 +19,7 @@ class Robot_Cats_Simulator_App():
         self.app_configuration()
 
     def update(self):
-        self.pathing.update()
+        return self.pathing.update()
 
     def app_configuration(self):
         dpg.create_viewport()

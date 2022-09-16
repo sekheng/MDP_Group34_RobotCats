@@ -79,8 +79,8 @@ class SimulatorManager():
         dist_travelled = 0
 
         self.timer = perf_counter()
+        print(f"\nTo STM: {get_stm_commands(sp.route)}\n")
         #print(self.timer)
-
 
         for curr_route in sp.route:
             self.console_writeline(f"Route {route_counter} to {curr_route.position}")

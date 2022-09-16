@@ -32,7 +32,6 @@ if __name__ == "__main__":
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
-    print(test_path.route)
     for routes in test_path.route:
         print(routes.route)
     print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
