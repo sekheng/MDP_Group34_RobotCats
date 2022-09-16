@@ -41,7 +41,7 @@ class SimulatorManager():
 
         # self.actions = Actions(self.robot, self.algo_grid)
         self.total_distance = 0
-        self.timer = 0
+        self.timer = perf_counter() + 500
 
         dpg.configure_item("start", callback=self.on_click_start)
 
@@ -58,8 +58,9 @@ class SimulatorManager():
             self.obstacles.append(sim_obstacle)
 
     def update(self):
-        current_time = time.perf_counter()
-        if current_time - self.timer < 360:
+        current_time = perf_counter()
+        print(current_time - self.timer)
+        if current_time - self.timer < 10:
             return 1
         else:
             return 0
@@ -77,7 +78,9 @@ class SimulatorManager():
         route_counter = 1
         dist_travelled = 0
 
-        self.timer = time.perf_counter()
+        self.timer = perf_counter()
+        #print(self.timer)
+
 
         for curr_route in sp.route:
             self.console_writeline(f"Route {route_counter} to {curr_route.position}")
