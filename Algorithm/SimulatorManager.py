@@ -1,3 +1,5 @@
+import time
+
 import dearpygui.dearpygui as dpg
 from constants import *
 from grid import *
@@ -54,8 +56,13 @@ class SimulatorManager():
             sim_obstacle = obs_indices_internal(o)
             sim_obstacle.viewpos = o.viewpos
             self.obstacles.append(sim_obstacle)
+
     def update(self):
-        self.timer += 0.05
+        current_time = time.perf_counter()
+        if current_time - self.timer < 360:
+            return 1
+        else:
+            return 0
 
     def on_click_start(self):
 
@@ -69,6 +76,8 @@ class SimulatorManager():
         move_counter = 1
         route_counter = 1
         dist_travelled = 0
+
+        self.timer = time.perf_counter()
 
         for curr_route in sp.route:
             self.console_writeline(f"Route {route_counter} to {curr_route.position}")

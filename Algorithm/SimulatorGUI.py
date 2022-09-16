@@ -73,5 +73,7 @@ if __name__ == "__main__":
 
     #dpg.start_dearpygui()
     while dpg.is_dearpygui_running():
-        app.update()
+        time_break_flag = app.update()
+        if time_break_flag == 0:
+            exit()
         dpg.render_dearpygui_frame()
