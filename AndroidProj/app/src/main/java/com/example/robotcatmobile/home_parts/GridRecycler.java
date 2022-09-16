@@ -1,14 +1,13 @@
 package com.example.robotcatmobile.home_parts;
 
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Typeface;
 import android.os.Build;
 import android.view.DragEvent;
 import android.view.LayoutInflater;
@@ -53,6 +52,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     public static final String Y_KEY = "y";
     public static final String ROBOT_VALUE = "robot";
     public static final String OBSTACLE_VALUE = "obstacle";
+    public static final String FONT_SIZE_KEY = "fontsize";
 
     public static final int COLUMNS = 15;
 
@@ -113,7 +113,9 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                             theGrid.setObstacle(true);
                             theGrid.setObstacleImage(symbol);
                             theGrid.setObstacleDirection(curDir);
-
+                            if (json.has(FONT_SIZE_KEY)) {
+                                theGrid.mGridButton.setTextSize((float)json.getInt(FONT_SIZE_KEY));
+                            }
                         } else if (type.equalsIgnoreCase(ROBOT_VALUE)) {
                             placeRobot(x,y);
                             mAngleOfRobot = curDir.getValue();
@@ -294,7 +296,6 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
             mGridButton.setOnClickListener(view -> {
                 switch (curInteractState) {
                     case ROBOT:
-                        ViewHolder selectedGrid = this;
                         int x = this.mX;
                         int y = this.mY;
                         // then set the position of the robot according to the grid position
@@ -494,6 +495,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 mGridButton.setText(obstacleLook);
             }
             mObstacleSymbol = obstacleLook;
+            mGridButton.setTypeface(Typeface.defaultFromStyle(Typeface.NORMAL));
         }
 
         void setObstacleBluetooth(boolean isObstacle,

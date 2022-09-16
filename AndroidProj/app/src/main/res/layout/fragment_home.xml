@@ -121,6 +121,15 @@ android:layout_width="wrap_content"
                 android:textAlignment="center"
                 android:gravity="center"
                 />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Map Size X:"
+                android:background="@color/black"
+                android:textColor="@color/white"
+                android:textAlignment="center"
+                android:gravity="center"
+                />
         </LinearLayout>
 
         <RelativeLayout
