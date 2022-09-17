@@ -71,7 +71,7 @@ android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
-            android:background="#DBD8D4"
+            android:background="@color/gray_DBD8D4"
             android:gravity="center"
             android:scrollbars="vertical"
             android:text="Not Available"
@@ -121,17 +121,51 @@ android:layout_width="wrap_content"
                 android:textAlignment="center"
                 android:gravity="center"
                 />
+
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Map Size X:"
-                android:background="@color/black"
-                android:textColor="@color/white"
+                android:layout_height="40dp"
+                android:text="@string/map_size_x_cm"
+                android:background="@color/robot_status_title"
+                android:textStyle="bold"
+                android:textColor="@color/black"
                 android:textAlignment="center"
                 android:gravity="center"
                 />
+            <EditText
+                android:id="@+id/map_size_x"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:text="100"
+                android:gravity="center"
+                />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/map_size_y_cm"
+                android:background="@color/robot_status_title"
+                android:textColor="@color/black"
+                android:textAlignment="center"
+                android:gravity="center"
+                />
+            <EditText
+                android:id="@+id/map_size_y"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:text="100"
+                android:gravity="center"
+                />
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/send_map_size"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/send"
+                />
         </LinearLayout>
-
         <RelativeLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">

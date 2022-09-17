@@ -14,4 +14,5 @@
     <color name="chat_input">#332E2E</color>
     <color name="robot_status_title">#039BE5</color>
     <color name="colorRed">#DF1C1C</color>
+    <color name="gray_DBD8D4">#DBD8D4</color>
 </resources>

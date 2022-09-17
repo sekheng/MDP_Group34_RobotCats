@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.appcompat.widget.AppCompatImageButton;
 
+import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -35,8 +36,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
-import java.sql.Timestamp;
-import java.util.GregorianCalendar;
 
 
 /**
@@ -56,6 +55,12 @@ public class HomeFrag extends Fragment {
     public static final String ROBOT_RIGHT = "right";
     // const value of robot going left
     public static final String ROBOT_LEFT = "left";
+    // const value of robot exploring
+    public static final String EXPLORE_VAL = "exploring";
+    // const value of robot fastest path
+    public static final String FASTEST_VAL = "fastest";
+    // const value of robot idle
+    public static final String IDLE_VAL = "idle";
 
     // the grid UI
     RecyclerView mGridLayout;
@@ -86,6 +91,13 @@ public class HomeFrag extends Fragment {
     Handler mStopWatchThread;
     // boolean flags to know whether it runs
     boolean mIsFastest = false;
+
+    // edit text for the map size x
+    EditText mMapSizeXEdit;
+    // edit text for map size y
+    EditText mMapSizeYEdit;
+    // send the map size button
+    AppCompatButton mMapSizeBtn;
 
     public HomeFrag() {
         // Required empty public constructor
@@ -126,7 +138,6 @@ public class HomeFrag extends Fragment {
                 // put it in a json!
                 JSONObject rightJson = new JSONObject();
                 try {
-                    //rightJson.put("tr","tr");
                     rightJson.put(ROBOT_DIRECTION, ROBOT_RIGHT);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -145,7 +156,6 @@ public class HomeFrag extends Fragment {
                 // put it in a json!
                 JSONObject rightJson = new JSONObject();
                 try {
-                    //rightJson.put("tl","tl");
                     rightJson.put(ROBOT_DIRECTION, ROBOT_LEFT);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -164,7 +174,6 @@ public class HomeFrag extends Fragment {
                 // put it in a json!
                 JSONObject rightJson = new JSONObject();
                 try {
-                    //rightJson.put("f","f");
                     rightJson.put(ROBOT_DIRECTION, ROBOT_UP);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -183,7 +192,6 @@ public class HomeFrag extends Fragment {
                 // put it in a json!
                 JSONObject rightJson = new JSONObject();
                 try {
-                    //rightJson.put("r","r");
                     rightJson.put(ROBOT_DIRECTION, ROBOT_REVERSE);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -230,12 +238,12 @@ public class HomeFrag extends Fragment {
         mExploreButton.setOnClickListener(view1 -> {
             if (!mIsFastest && mStopWatchThread != null) {
                 // this means that it is toggling start/stop
-                stopTime();
+                stopTimeBluetooth();
             }
             else {
                 mIsFastest = false;
                 // set the status!
-                startTime("exploring");
+                startTimeBluetooth(EXPLORE_VAL);
             }
         });
         mExploreText = view.findViewById(R.id.explore_text);
@@ -243,31 +251,49 @@ public class HomeFrag extends Fragment {
         mFastestButton.setOnClickListener(view1 -> {
             if (mIsFastest && mStopWatchThread != null) {
                 // this means that it is toggling start/stop
-                stopTime();
+                stopTimeBluetooth();
             }
             else {
                 mIsFastest = true;
-                startTime("fastest");
+                startTimeBluetooth(FASTEST_VAL);
             }
         });
         mFastestText = view.findViewById(R.id.fastest_text);
+
+        // to also get the edit text
+        mMapSizeXEdit = view.findViewById(R.id.map_size_x);
+        mMapSizeYEdit = view.findViewById(R.id.map_size_y);
+        mMapSizeBtn = view.findViewById(R.id.send_map_size);
+        mMapSizeBtn.setOnClickListener(view1 -> {
+            // to send the bluetooth information over
+            JSONObject jsonObject = new JSONObject();
+            try {
+                jsonObject.put("MapSizeX",mMapSizeXEdit.getText().toString());
+                jsonObject.put("MapSizeY",mMapSizeYEdit.getText().toString());
+                BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 
-    void stopTime() {
-        mStopWatchThread.removeCallbacks(runnable);
-        mStopWatchThread = null;
-        sendStatusValue("idle");
+    void stopTimeBluetooth() {
+        stopTime();
         JSONObject jsonObject = new JSONObject();
         try {
             // to send to the robot that it has stopped
-            jsonObject.put(STATUS_KEY, "idle");
+            jsonObject.put(STATUS_KEY, IDLE_VAL);
             BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-    void startTime(String statusStr) {
+    void stopTime() {
+        sendStatusValue(IDLE_VAL);
+    }
+
+    void startTimeBluetooth(String statusStr) {
         sendStatusValue(statusStr);
         // and send the text over in bluetooth
         JSONObject jsonObject = new JSONObject();
@@ -277,6 +303,10 @@ public class HomeFrag extends Fragment {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        startTime();
+    }
+
+    void startTime() {
         if (mStopWatchThread == null) {
             mStopWatchThread = new Handler();
         }
@@ -291,7 +321,6 @@ public class HomeFrag extends Fragment {
         Intent statusIntent = new Intent(STATUS_KEY);
         statusIntent.putExtra(STATUS_KEY, statusVal);
         LocalBroadcastManager.getInstance(getContext()).sendBroadcast(statusIntent);
-
     }
 
     @Override
@@ -307,7 +336,20 @@ public class HomeFrag extends Fragment {
     BroadcastReceiver mStatusReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            mStatusTxt.setText(intent.getStringExtra(STATUS_KEY));
+            String statusVal = intent.getStringExtra(STATUS_KEY);
+            mStatusTxt.setText(statusVal);
+            if (statusVal.equalsIgnoreCase(IDLE_VAL)) {
+                mStopWatchThread.removeCallbacks(runnable);
+                mStopWatchThread = null;
+            }
+            else {
+                if (statusVal.equalsIgnoreCase(EXPLORE_VAL)) {
+                    mIsFastest = false;
+                } else if (statusVal.equalsIgnoreCase(FASTEST_VAL)) {
+                    mIsFastest = true;
+                }
+                startTime();
+            }
         }
     };
 
