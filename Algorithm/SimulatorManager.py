@@ -80,9 +80,7 @@ class SimulatorManager():
 
         self.timer = perf_counter()
         print(f"\nTo STM: {get_stm_commands(sp.route)}\n")
-        #print(self.timer)
-        print(sp)
-        print(sp.route)
+
 
         for curr_route in sp.route:
             self.console_writeline(f"Route {route_counter} to {curr_route.position}")
@@ -152,57 +150,3 @@ class SimulatorManager():
         dpg.set_value("robot_x_highlight", self.robot.row)
         dpg.set_value("robot_y_highlight", self.robot.col)
         dpg.set_value("robot_direction_highlight", self.robot.direction)
-
-    # def get_shortest_path(self):
-    #     sp = ShortestPath(self.algo_grid)
-    #     start_time = perf_counter()
-    #     self.console_writeline("Retrieving shortest path..")
-    #
-    #     self.actions.clear()
-    #     sp.get_shortest_path()
-    #     self.actions.enqueue(sp.route)
-    #     end_time = perf_counter()
-    #
-    #     self.console_writeline(f"Time taken: {end_time - start_time:.2f}")
-    #
-    #     if not self.actions.is_completed:
-    #         print("Not complete")
-    #         for item in self.actions.routes:
-    #             self.total_distance += item.distance
-    #         self.console_writeline(f"Path found with total distance = {self.total_distance}. Starting simulation...")
-    #
-    #         self.robot.row = 0
-    #         self.robot.col = 0
-    #         self.redraw()
-    #
-    #     else:
-    #         self.console_writeline("ERROR! Not all paths are possible")
-
-
-    # def on_click_start(self):
-    #
-    #     if self.total_distance == 0:
-    #         self.get_shortest_path()
-    #
-    #     if self.actions.is_completed or not self.obstacles:
-    #         self.console_writeline("Nothing left to do.")
-    #         self.redraw()
-    #         return
-    #
-    #     if not self.run_simulation:
-    #         self.run_simulation = True
-    #         self.timer = 0
-    #
-    #     if not self.actions.is_completed and self.run_simulation:
-    #
-    #         if not self.actions.dequeue() is None:
-    #             print(self.actions.dequeue())
-    #             robot_pos, move = self.actions.dequeue()
-    #             self.robot = robot_pos
-    #             # robot_indices_internal(robot_pos)
-    #             self.console_writeline(f"({robot_pos.row}, {robot_pos.col}, {robot_pos.direction}): {move}")
-    #         self.redraw()
-    #     else:
-    #         self.console_writeline("Route complete!")
-    #         self.console_writeline(f"Total Distance: {self.total_distance}")
-    #     self.redraw()
