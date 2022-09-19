@@ -59,8 +59,8 @@ class SimulatorManager():
 
     def update(self):
         current_time = perf_counter()
-        print(current_time - self.timer)
-        if current_time - self.timer < 10:
+        #print(current_time - self.timer)
+        if current_time - self.timer < 360:
             return 1
         else:
             return 0
@@ -81,6 +81,8 @@ class SimulatorManager():
         self.timer = perf_counter()
         print(f"\nTo STM: {get_stm_commands(sp.route)}\n")
         #print(self.timer)
+        print(sp)
+        print(sp.route)
 
         for curr_route in sp.route:
             self.console_writeline(f"Route {route_counter} to {curr_route.position}")

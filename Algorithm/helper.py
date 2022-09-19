@@ -43,6 +43,9 @@ def get_stm_commands(route_list: list[Route]):
     stm_route = []
     for route_obj in route_list:
         route = route_obj.route
+        #dummy value for now, need to include pause command into STM
+        route.append('P')
+        print(route)
         count = 1
         for i in range(len(route)):
             if i < len(route) - 1 and route[i] == route[i+1] and route[i] in 'FB':
@@ -57,7 +60,10 @@ def get_stm_commands(route_list: list[Route]):
                 elif route[i] == 'R':
                     stm_route.append(f"e{90:03d}")
                 # TODO: Stop command?
+                elif route[i] == 'P':
+                    stm_route.append('P')
                 count = 1
+            #stm_route.append('WAIT 10SECONDS')
     return stm_route
 
 

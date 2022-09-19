@@ -155,8 +155,10 @@ class ShortestPath:
                 # paths = paths + ucs.get_path()
                 prev = goal
 
+
                 if pt_to_pt.route:
                     paths.append(pt_to_pt)
+
 
             if total_dist < chosen_route[0] and possible:
                 if len(paths) != len(self.grid.obstacles):
