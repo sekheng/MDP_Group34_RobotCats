@@ -1,0 +1,238 @@
+import itertools
+from constants import *
+from node import Node
+from route import Route
+import helper
+from math import sqrt
+from queue import PriorityQueue
+
+class ShortestPath:
+
+    def __init__(self, grid):
+        self.grid = grid
+        self.start = helper.to_indices([1, 1, 1])  # 1: NORTH
+        self.distance = float('inf')  # distance of chosen shortest route
+        self.route = None
+
+    @staticmethod
+    def get_child(curr_node, move):
+        curr_pos = curr_node.pos
+        new_pos = curr_pos[:]
+        if move == 'F':
+            if curr_pos[2] == 1:  # car facing NORTH
+                new_pos[0] -= 1
+            elif curr_pos[2] == 3:  # car facing SOUTH
+                new_pos[0] += 1
+            elif curr_pos[2] == 2:  # car facing EAST
+                new_pos[1] += 1
+            elif curr_pos[2] == 4:  # car facing WEST
+                new_pos[1] -= 1
+        elif move == 'B':
+            if curr_pos[2] == 1:
+                new_pos[0] += 1
+            elif curr_pos[2] == 3:
+                new_pos[0] -= 1
+            elif curr_pos[2] == 2:
+                new_pos[1] -= 1
+            elif curr_pos[2] == 4:
+                new_pos[1] += 1
+        elif move == 'L':
+            if curr_pos[2] == 1:  # N
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[2] = 4  # W
+            elif curr_pos[2] == 2:  # E
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[2] = 1  # N
+            elif curr_pos[2] == 3:  # S
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[2] = 2  # E
+            elif curr_pos[2] == 4:  # W
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[2] = 3  # S
+            # new_pos[2] = (curr_pos[2] + 3) % 4
+        elif move == 'R':
+            if curr_pos[2] == 1:  # N
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[2] = 2 # E
+            elif curr_pos[2] == 2:  # E
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[2] = 3  # S
+            elif curr_pos[2] == 3:  # S
+                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[2] = 4  # W
+            elif curr_pos[2] == 4:  # W
+                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[2] = 1  # N
+            # new_pos[2] = (curr_pos[2] + 1) % 4
+
+        child = Node(curr_node, move, new_pos)
+        return child
+
+    def is_move_valid(self, curr_pos, new_pos, move):
+        if move == 'L' or move == 'R':
+            return self.is_turn_valid(curr_pos, move)
+
+        return self.grid.robot_pos_is_valid(new_pos)
+
+    def is_turn_valid(self, curr_pos, move):
+
+        xi, yi, d = curr_pos
+
+        # print("d =", d, ",move =", move)
+
+        if (d == 1 and move == 'L') or (d == 4 and move == 'R'):
+            xn, yn = xi - TURN_GRIDS, yi - TURN_GRIDS
+            # print("xn =", xn)
+        elif (d == 4 and move == 'L') or (d == 3 and move == 'R'):
+            xn, yn = xi + TURN_GRIDS, yi - TURN_GRIDS
+            # print("xn =", xn)
+        elif (d == 3 and move == 'L') or (d == 2 and move == 'R'):
+            xn, yn = xi + TURN_GRIDS, yi + TURN_GRIDS
+            # print("xn =", xn)
+        elif (d == 2 and move == 'L') or (d == 1 and move == 'R'):
+            xn, yn = xi - TURN_GRIDS, yi + TURN_GRIDS
+
+        for x in range(min(xi, xn), max(xi, xn) + 1):
+            for y in range(min(yi, yn), max(yi, yn) + 1):
+                if not self.grid.robot_pos_is_valid([x, y, None]):
+                    return False
+
+        return True
+
+    def get_shortest_path(self):
+
+        cache = {}  # key = (start.id,goal.id)
+        # value = point-to-point path and distance
+        # already computed point-to-point distances
+
+        viewing_pos = list(obs.viewpos for obs in self.grid.obstacles)
+        print("Viewing positions:", viewing_pos)
+        candidate_routes = list(itertools.permutations(viewing_pos))  # get all path permutations
+        chosen_route = (float('inf'), None)  # total distance, path
+
+        for i, route in enumerate(candidate_routes):
+            # if i == 2:
+            #     break
+            # print("Route", i, route)
+            total_dist = 0
+            paths = []
+            prev = self.start
+
+            possible = True
+
+            for viewpos in route:
+
+                if total_dist > chosen_route[0]:
+                    possible = False
+                    break
+
+                pt_to_pt = Route(position=viewpos)
+
+                start = prev
+                goal = viewpos
+
+                # print("start =", start, "goal =", goal)
+
+                if (tuple(start), tuple(goal)) not in cache:
+
+                    if self.aStar(start, goal) is None:
+                        # print("No path found for", start, "to", goal)
+                        possible = False
+                        break
+
+                    res_route, res_dist = self.aStar(start, goal)
+                    cache[(tuple(start), tuple(goal))] = (res_route, res_dist)
+                    pt_to_pt.route = res_route
+                    pt_to_pt.distance = res_dist
+                    total_dist += res_dist
+                else:
+                    # print("Cache hit")
+                    route, dist = cache[(tuple(start), tuple(goal))]
+                    pt_to_pt.route = route
+                    pt_to_pt.distance = dist
+                    total_dist += dist
+
+                # paths = paths + ucs.get_path()
+                prev = goal
+
+
+                if pt_to_pt.route:
+                    paths.append(pt_to_pt)
+
+
+            if total_dist < chosen_route[0] and possible:
+                if len(paths) != len(self.grid.obstacles):
+                    print("Not every obstacle is accessible")
+                    continue
+                chosen_route = (total_dist, paths)
+
+            # print("Total dist =", total_dist, "Possible =", possible)
+            # print()
+
+        self.route = chosen_route[1]
+        self.distance = chosen_route[0]
+        # print("Chosen shortest route =", self.route, "Cost =", self.distance)
+
+    @staticmethod
+    def h(cell1, cell2):
+
+        x1, y1, d = cell1
+        x2, y2, d = cell2
+        # Manhattan distance between source to goal
+        return abs(x1 - x2) + abs(y1 - y2)
+
+        # Euclidean
+        # return sqrt( ((x1 - x2)**2) + ((y1 - y2)**2) )
+
+    def aStar(self, start, goal):
+
+        start = Node(None, None, start)
+        goal = Node(None, None, goal)
+        start.f = start.h = self.h(start.pos, goal.pos)
+        open = PriorityQueue()
+        open.put((start.f, start.h, start))
+        # parents = {}
+        f_score = {}
+        for row in range(self.grid.num_rows):
+            for col in range(self.grid.num_cols):
+                for d in range(1, 5):
+                    f_score[(row, col, d)] = float('inf')
+
+        while not open.empty():
+
+            curr = open.get()[2]
+
+            # if there is a shorter path to this position, don't expand this cell
+            if curr.f > f_score[tuple(curr.pos)]:
+                continue
+
+            # if goal is reached, return path and distance
+            if curr.pos == goal.pos:
+                path = []
+                current = curr
+                dist = curr.g
+                while current.move is not None:
+                    path.append(current.move)
+                    current = current.parent
+                return path[::-1], dist
+
+            for move in MOVES:
+                child = self.get_child(curr, move)
+
+                if (move == 'R' or move == 'L'):
+                    child.g = 20
+
+                if (move == 'B'):
+                    child.g = 5
+
+                if not self.is_move_valid(curr.pos, child.pos, move):
+                    continue
+
+                child.g += curr.g + 10
+                child.h = self.h(child.pos, goal.pos)
+                child.f = child.g + child.h
+
+                if child.f < f_score[tuple(child.pos)]:
+                    f_score[tuple(child.pos)] = child.f
+                    open.put((child.f, child.h, child))
+
