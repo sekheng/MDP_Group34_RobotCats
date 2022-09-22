@@ -9,7 +9,7 @@ import constants
 
 class AlgoServer:
     def __init__(self):
-        self.host = ''
+        self.host = '192.168.34.22'
         self.port = 5560
         self.input_obstacles = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
         self.algo_obstacles = []
@@ -23,7 +23,8 @@ class AlgoServer:
         self.algo_path = ShortestPath(self.algo_grid)
         self.algo_path.get_shortest_path()
 
-        self.stm_commands_list = get_stm_commands(self.algo_path.route)
+        self.str_stm_commands_list = ' '.join(get_stm_commands(self.algo_path.route))
+        print(self.str_stm_commands_list)
         self.main()
 
     def setup_server(self):
@@ -40,10 +41,11 @@ class AlgoServer:
         server.listen(1)
         conn, address = server.accept()
         print("Connected to: " + address[0] + ":" + str(address[1]))
+        print("conn is", conn, "address is", address)
         return conn
 
     def server_get(self):
-        reply = self.stm_commands_list
+        reply = self.str_stm_commands_list
         return reply
 
     def server_repeat(self, dataMessage):
@@ -56,9 +58,11 @@ class AlgoServer:
             # Receive the data
             data = conn.recv(1024)  # receive the data
             data = data.decode('utf-8')
+            print('data is ' + str(data))
             # Split the data such that you separate the command
             # from the rest of the data.
             dataMessage = data.split(' ', 1)
+            print('data message is ' + str(dataMessage))
             command = dataMessage[0]
             if command == 'GET':
                 reply = self.server_get()
@@ -74,7 +78,8 @@ class AlgoServer:
             else:
                 reply = 'Unknown Command'
             # Send the reply back to the client
-            conn.sendall(str.encode(reply))
+            print('reply is ' + str(reply))
+            conn.sendall(reply.encode('utf-8'))
             print("Data has been sent!")
         conn.close()
 
@@ -87,4 +92,6 @@ class AlgoServer:
             except:
                 break
 
-test_server = AlgoServer()
+
+if __name__ == "__main__":
+    test_server = AlgoServer()
