@@ -103,22 +103,6 @@ class AlgoServer:
             self.algo_obstacles.append(Obstacle(row, col, direction))
             # print(self.input_obstacles)
 
-    def test_obstacle_conversion(self):
-        test_json = [{"type": "obstacle", "direction": "south", "symbol": "square", "x": "2", "y": "4"},
-                     {"type": "obstacle", "direction": "east", "symbol": "square", "x": "6", "y": "6"},
-                     {"type": "obstacle", "direction": "south", "symbol": "square", "x": "10", "y": "2"},
-                     {"type": "obstacle", "direction": "west", "symbol": "square", "x": "15", "y": "12"},
-                     {"type": "obstacle", "direction": "south", "symbol": "square", "x": "18", "y": "1"},
-                     {"type": "obstacle", "direction": "north", "symbol": "square", "x": "8", "y": "17"},
-                     {"type": "obstacle", "direction": "north", "symbol": "square", "x": "13", "y": "10"},
-                     {"type": "obstacle", "direction": "north", "symbol": "square", "x": "18", "y": "13"}]
-        #[[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
-
-        for item in test_json:
-            self.android_to_algo(item)
-
-        print(self.server_get())
-
     def main(self):
         s = self.setup_server()
         while True:
@@ -131,4 +115,3 @@ class AlgoServer:
 
 if __name__ == "__main__":
     test_server = AlgoServer()
-    # test_server.test_obstacle_conversion()

@@ -219,10 +219,10 @@ class ShortestPath:
             for move in MOVES:
                 child = self.get_child(curr, move)
 
-                if (move == 'R' or move == 'L'):
+                if move == 'R' or move == 'L':
                     child.g = 20
 
-                if (move == 'B'):
+                if move == 'B':
                     child.g = 5
 
                 if not self.is_move_valid(curr.pos, child.pos, move):
