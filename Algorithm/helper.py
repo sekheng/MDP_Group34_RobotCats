@@ -59,7 +59,6 @@ def get_stm_commands(route_list: list[Route]):
                     stm_route.append(f"q{90:03d}")
                 elif route[i] == 'R':
                     stm_route.append(f"e{90:03d}")
-                # TODO: Stop command?
                 elif route[i] == 'P':
                     stm_route.append('P')
                 count = 1

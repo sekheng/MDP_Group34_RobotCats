@@ -1,4 +1,5 @@
 import socket
+import json
 from grid import *
 from helper import *
 from obstacle import *
@@ -11,20 +12,19 @@ class AlgoServer:
     def __init__(self):
         self.host = '192.168.34.22'
         self.port = 5560
-        self.input_obstacles = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+        # self.input_obstacles = []
         self.algo_obstacles = []
-        for o in self.input_obstacles:
-            row, col, d = to_indices(o)
-            self.algo_obstacles.append(Obstacle(row, col, d))
+        # for o in self.input_obstacles:
+        #     row, col, d = to_indices(o)
+        #     self.algo_obstacles.append(Obstacle(row, col, d))
         r_row, r_col, r_d = to_indices([1, 1, 1])  # For algorithm robot
         self.algo_robot = Robot(r_row, r_col, r_d)
-        self.algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
 
-        self.algo_path = ShortestPath(self.algo_grid)
-        self.algo_path.get_shortest_path()
-
-        self.str_stm_commands_list = ' '.join(get_stm_commands(self.algo_path.route))
-        print(self.str_stm_commands_list)
+        # self.algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
+        # self.algo_path = ShortestPath(self.algo_grid)
+        # self.algo_path.get_shortest_path()
+        # self.str_stm_commands_list = ' '.join(get_stm_commands(self.algo_path.route))
+        # print(self.str_stm_commands_list)
         self.main()
 
     def setup_server(self):
@@ -45,7 +45,15 @@ class AlgoServer:
         return conn
 
     def server_get(self):
-        reply = self.str_stm_commands_list
+
+        algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
+        algo_path = ShortestPath(algo_grid)
+        algo_path.get_shortest_path()
+
+        str_stm_commands_list = ' '.join(get_stm_commands(algo_path.route))
+        print(str_stm_commands_list)
+
+        reply = str_stm_commands_list
         return reply
 
     def server_repeat(self, dataMessage):
@@ -83,6 +91,34 @@ class AlgoServer:
             print("Data has been sent!")
         conn.close()
 
+    def android_to_algo(self, data: dict):
+        # Converts obstacle coordinates from Android into coordinates for algorithm
+
+        if "type" in data.keys() and data["type"] == "obstacle":
+            x = int(data['x'])
+            y = AREA_WIDTH//CELL_SIZE - 1 - int(data['y'])
+            d = data["direction"].upper()[0]
+            obstacle = [x, y, d]  # Simulator coordinates
+            row, col, direction = to_indices(obstacle) # Algorithm coordinates
+            self.algo_obstacles.append(Obstacle(row, col, direction))
+            # print(self.input_obstacles)
+
+    def test_obstacle_conversion(self):
+        test_json = [{"type": "obstacle", "direction": "south", "symbol": "square", "x": "2", "y": "4"},
+                     {"type": "obstacle", "direction": "east", "symbol": "square", "x": "6", "y": "6"},
+                     {"type": "obstacle", "direction": "south", "symbol": "square", "x": "10", "y": "2"},
+                     {"type": "obstacle", "direction": "west", "symbol": "square", "x": "15", "y": "12"},
+                     {"type": "obstacle", "direction": "south", "symbol": "square", "x": "18", "y": "1"},
+                     {"type": "obstacle", "direction": "north", "symbol": "square", "x": "8", "y": "17"},
+                     {"type": "obstacle", "direction": "north", "symbol": "square", "x": "13", "y": "10"},
+                     {"type": "obstacle", "direction": "north", "symbol": "square", "x": "18", "y": "13"}]
+        #[[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+
+        for item in test_json:
+            self.android_to_algo(item)
+
+        print(self.server_get())
+
     def main(self):
         s = self.setup_server()
         while True:
@@ -95,3 +131,4 @@ class AlgoServer:
 
 if __name__ == "__main__":
     test_server = AlgoServer()
+    # test_server.test_obstacle_conversion()
