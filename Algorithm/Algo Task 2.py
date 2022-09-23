@@ -11,9 +11,11 @@ class AlgoTask2():
         self.set_dist_travelled_start_object1()
         self.set_dist_travelled_object1_object2()
         self.stm_command_list.append('w'+str(self.DIST_START_OBJECT1-20))
+        self.stm_command_list.append('P')
         self.capture_image(1)
         self.stm_command_list.append('w'+str(self.DIST_OBJECT1_OBJECT2-50))
         #commands for moving back to start point
+        self.stm_command_list.append('P')
         second_obstacle_turn = self.capture_image(2)
         self.return_path(second_obstacle_turn)
         print(self.stm_command_list)
@@ -61,7 +63,9 @@ class AlgoTask2():
             self.stm_command_list.append('e090')
             self.stm_command_list.append('w020')
             self.stm_command_list.append('a090')
-            self.stm_command_list.append('w' + str(self.DIST_START_OBJECT1-20+20))
+            #-20 because distance between robot and obstacle,
+            # +50 because need to park inside the car
+            self.stm_command_list.append('w' + str(self.DIST_START_OBJECT1-20+50))
         elif second_obstacle_turn == 'R':
             self.stm_command_list.append('w020')
             self.stm_command_list.append('q090')
@@ -69,6 +73,8 @@ class AlgoTask2():
             self.stm_command_list.append('q090')
             self.stm_command_list.append('w020')
             self.stm_command_list.append('d090')
-            self.stm_command_list.append('w' + str(self.DIST_START_OBJECT1-20+20))
+            #-20 because distance between robot and obstacle,
+            # +50 because need to park inside the car
+            self.stm_command_list.append('w' + str(self.DIST_START_OBJECT1-20+50))
 
 test = AlgoTask2()
