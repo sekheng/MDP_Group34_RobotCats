@@ -54,9 +54,9 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     public static final String OBSTACLE_VALUE = "obstacle";
     public static final String FONT_SIZE_KEY = "fontsize";
 
-    public static final int COLUMNS = 15;
+    public static final int COLUMNS = 20;
 
-    public static final int ROWS = 15;
+    public static final int ROWS = 20;
 
     final int mWidthOfRobot = 3;
 

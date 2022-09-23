@@ -92,13 +92,6 @@ public class HomeFrag extends Fragment {
     // boolean flags to know whether it runs
     boolean mIsFastest = false;
 
-    // edit text for the map size x
-    EditText mMapSizeXEdit;
-    // edit text for map size y
-    EditText mMapSizeYEdit;
-    // send the map size button
-    AppCompatButton mMapSizeBtn;
-
     public HomeFrag() {
         // Required empty public constructor
     }
@@ -259,22 +252,6 @@ public class HomeFrag extends Fragment {
             }
         });
         mFastestText = view.findViewById(R.id.fastest_text);
-
-        // to also get the edit text
-        mMapSizeXEdit = view.findViewById(R.id.map_size_x);
-        mMapSizeYEdit = view.findViewById(R.id.map_size_y);
-        mMapSizeBtn = view.findViewById(R.id.send_map_size);
-        mMapSizeBtn.setOnClickListener(view1 -> {
-            // to send the bluetooth information over
-            JSONObject jsonObject = new JSONObject();
-            try {
-                jsonObject.put("MapSizeX",mMapSizeXEdit.getText().toString());
-                jsonObject.put("MapSizeY",mMapSizeYEdit.getText().toString());
-                BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
     }
 
     void stopTimeBluetooth() {
@@ -362,6 +339,7 @@ public class HomeFrag extends Fragment {
             int Minutes=Seconds/60;
             Seconds%=60;
             int MilliSeconds=(int)(timeInMilliseconds%1000);
+
             String text = Minutes + ":" +String.format("%02d",Seconds)+":"
                     +String.format("%03d",MilliSeconds);
             if (mIsFastest) {
