@@ -56,6 +56,10 @@ public class HomeFrag extends Fragment {
     // const value of robot going left
     public static final String ROBOT_LEFT = "left";
     // const value of robot exploring
+    public static final String ROBOT_RDU = "right diagnol up";
+    public static final String ROBOT_LDU = "left diagonal up";
+    public static final String ROBOT_RDD = "right diagonal down";
+    public static final String ROBOT_LDD = "left diagonal down";
     public static final String EXPLORE_VAL = "exploring";
     // const value of robot fastest path
     public static final String FASTEST_VAL = "fastest";
@@ -76,6 +80,10 @@ public class HomeFrag extends Fragment {
     // down button
     AppCompatImageButton mBackButton;
     // radio group for obstacles
+    AppCompatImageButton mRDUButton;
+    AppCompatImageButton mLDUkButton;
+    AppCompatImageButton mRDDkButton;
+    AppCompatImageButton mLDDButton;
     RadioGroup mToggleGroups;
     // button for explore
     AppCompatButton mExploreButton;
