@@ -53,6 +53,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     public static final String ROBOT_VALUE = "robot";
     public static final String OBSTACLE_VALUE = "obstacle";
     public static final String FONT_SIZE_KEY = "fontsize";
+    public static final String REMOVE_OBSTACLE_VALUE = "remove_obstacle";
+    public static final String REMOVE_ROBOT_VALUE = "remove_robot";
 
     public static final int COLUMNS = 20;
 
@@ -308,14 +310,26 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                             default:
                                 break;
                         }
+                        // we will cheat here by checking whether it is removed or not
+                        int robotX = mRobotX;
+                        int robotY = mRobotY;
+                        boolean previousFlag = mIsRobotPlaced;
                         placeRobot(x, y);
                         // and then send a bluetooth message to say which grid location it is placed!
                         JSONObject jsonObject = new JSONObject();
                         try {
-                            jsonObject.put(BluetoothConn.SENDING_TYPE,ROBOT_VALUE);
-                            jsonObject.put(X_KEY,mRobotX);
-                            jsonObject.put(Y_KEY,mRobotY);
-                            jsonObject.put(DIRECTION_KEY,mRobotDirection);
+                            if (previousFlag == mIsRobotPlaced && robotX == mRobotX && robotY == mRobotY) {
+                                // to remove the robot completely
+                                jsonObject.put(BluetoothConn.SENDING_TYPE, REMOVE_ROBOT_VALUE);
+                                mRobotImg.setVisibility(View.INVISIBLE);
+                                mIsRobotPlaced = false;
+                            }
+                            else {
+                                jsonObject.put(BluetoothConn.SENDING_TYPE, ROBOT_VALUE);
+                                jsonObject.put(X_KEY, mRobotX);
+                                jsonObject.put(Y_KEY, mRobotY);
+                                jsonObject.put(DIRECTION_KEY, mRobotDirection);
+                            }
                             BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -504,11 +518,19 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
             // just for the grid button to send the obstacle over
             JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject.put(BluetoothConn.SENDING_TYPE,OBSTACLE_VALUE);
-                jsonObject.put(X_KEY,mX);
-                jsonObject.put(Y_KEY,mY);
-                jsonObject.put(SYMBOL_KEY, imageStr);
-                jsonObject.put(DIRECTION_KEY, direction.toString());
+                if (isObstacle) {
+                    jsonObject.put(BluetoothConn.SENDING_TYPE, OBSTACLE_VALUE);
+                    jsonObject.put(X_KEY, mX);
+                    jsonObject.put(Y_KEY, mY);
+                    jsonObject.put(SYMBOL_KEY, imageStr);
+                    jsonObject.put(DIRECTION_KEY, direction.toString());
+                }
+                else {
+                    // to remove the obstacle according to the coordinate
+                    jsonObject.put(BluetoothConn.SENDING_TYPE, REMOVE_OBSTACLE_VALUE);
+                    jsonObject.put(X_KEY, mX);
+                    jsonObject.put(Y_KEY, mY);
+                }
                 BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));
             } catch (JSONException e) {
                 e.printStackTrace();
