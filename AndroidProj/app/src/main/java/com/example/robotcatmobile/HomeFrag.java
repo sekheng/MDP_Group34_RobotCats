@@ -80,10 +80,10 @@ public class HomeFrag extends Fragment {
     // down button
     AppCompatImageButton mBackButton;
     // radio group for obstacles
-    AppCompatImageButton mRDUButton;
-    AppCompatImageButton mLDUkButton;
-    AppCompatImageButton mRDDkButton;
-    AppCompatImageButton mLDDButton;
+    //AppCompatImageButton mRDUButton;
+   // AppCompatImageButton mLDUButton;
+   // AppCompatImageButton mRDDButton;
+    //AppCompatImageButton mLDDButton;
     RadioGroup mToggleGroups;
     // button for explore
     AppCompatButton mExploreButton;
