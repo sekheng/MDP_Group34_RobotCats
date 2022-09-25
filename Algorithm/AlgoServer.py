@@ -13,6 +13,7 @@ class AlgoServer:
         self.host = '192.168.34.22'
         self.port = 5560
         # self.input_obstacles = []
+        self.algo_obstacles_dict = {}
         self.algo_obstacles = []
         # for o in self.input_obstacles:
         #     row, col, d = to_indices(o)
@@ -66,29 +67,34 @@ class AlgoServer:
             # Receive the data
             data = conn.recv(1024)  # receive the data
             data = data.decode('utf-8')
-            print('data is ' + str(data))
-            # Split the data such that you separate the command
-            # from the rest of the data.
-            dataMessage = data.split(' ', 1)
-            print('data message is ' + str(dataMessage))
-            command = dataMessage[0]
-            if command == 'GET':
-                reply = self.server_get()
-            elif command == 'REPEAT':
-                reply = self.server_repeat(dataMessage)
-            elif command == 'EXIT':
-                print("Our client has left us :(")
-                break
-            elif command == 'KILL':
-                print("Our server is shutting down.")
-                server.close()
-                break
-            else:
-                reply = 'Unknown Command'
-            # Send the reply back to the client
-            print('reply is ' + str(reply))
-            conn.sendall(reply.encode('utf-8'))
-            print("Data has been sent!")
+            try:
+                parsed_data = json.loads(data)
+                self.android_to_algo(parsed_data)
+            except:
+                print('data is not a json string')
+                print('data is ' + str(data))
+                # Split the data such that you separate the command
+                # from the rest of the data.
+                dataMessage = data.split(' ', 1)
+                print('data message is ' + str(dataMessage))
+                command = dataMessage[0]
+                if command == 'GET':
+                    reply = self.server_get()
+                elif command == 'REPEAT':
+                    reply = self.server_repeat(dataMessage)
+                elif command == 'EXIT':
+                    print("Our client has left us :(")
+                    break
+                elif command == 'KILL':
+                    print("Our server is shutting down.")
+                    server.close()
+                    break
+                else:
+                    reply = 'Unknown Command'
+                # Send the reply back to the client
+                print('reply is ' + str(reply))
+                conn.sendall(reply.encode('utf-8'))
+                print("Data has been sent!")
         conn.close()
 
     def android_to_algo(self, data: dict):
