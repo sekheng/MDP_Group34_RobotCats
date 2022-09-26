@@ -351,17 +351,9 @@ public class HomeFrag extends Fragment {
 
     void ControlPressed(String toSend) {
         if (GridRecycler.mIsRobotPlaced) {
-            JSONObject rightJson;
-            try {
-                rightJson = new JSONObject();
-                rightJson.put(ROBOT_DIRECTION, toSend);
-                // broadcast the message
-                Intent jsonIntent = new Intent(ROBOT_DIRECTION);
-                jsonIntent.putExtra(ROBOT_DIRECTION, rightJson.toString());
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            Intent jsonIntent = new Intent(ROBOT_DIRECTION);
+            jsonIntent.putExtra(ROBOT_DIRECTION, toSend);
+            LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
         }
     }
 }

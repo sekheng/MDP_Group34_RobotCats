@@ -138,57 +138,51 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     BroadcastReceiver mDirectionBR = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String jsonString = intent.getStringExtra(ROBOT_DIRECTION);
-            try {
-                JSONObject json = new JSONObject(jsonString);
-                String direction = json.get(ROBOT_DIRECTION).toString();
-                switch (direction) {
-                    case HomeFrag.ROBOT_LEFT:
-                        rotateRobot(-90);
-                        break;
-                    case HomeFrag.ROBOT_RIGHT:
-                        rotateRobot(90);
-                        break;
-                    case HomeFrag.ROBOT_REVERSE:
-                        moveRobot(false);
-                        break;
-                    case HomeFrag.ROBOT_UP:
-                        moveRobot(true);
-                        break;
-                    case HomeFrag.ROBOT_LDD:
-                        // it will be almost the same as here
-                        moveRobot(false);
-                        moveRobot(false);
-                        rotateRobot(90);
-                        moveRobot(false);
-                        moveRobot(false);
-                        break;
-                    case HomeFrag.ROBOT_LDU:
-                        moveRobot(true);
-                        moveRobot(true);
-                        rotateRobot(-90);
-                        moveRobot(true);
-                        moveRobot(true);
-                        break;
-                    case HomeFrag.ROBOT_RDD:
-                        moveRobot(false);
-                        moveRobot(false);
-                        rotateRobot(-90);
-                        moveRobot(false);
-                        moveRobot(false);
-                        break;
-                    case  HomeFrag.ROBOT_RDU:
-                        moveRobot(true);
-                        moveRobot(true);
-                        rotateRobot(90);
-                        moveRobot(true);
-                        moveRobot(true);
-                        break;
-                    default:
-                        break;
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
+            String direction = intent.getStringExtra(ROBOT_DIRECTION);
+            switch (direction) {
+                case HomeFrag.ROBOT_LEFT:
+                    rotateRobot(-90);
+                    break;
+                case HomeFrag.ROBOT_RIGHT:
+                    rotateRobot(90);
+                    break;
+                case HomeFrag.ROBOT_REVERSE:
+                    moveRobot(false);
+                    break;
+                case HomeFrag.ROBOT_UP:
+                    moveRobot(true);
+                    break;
+                case HomeFrag.ROBOT_LDD:
+                    // it will be almost the same as here
+                    moveRobot(false);
+                    moveRobot(false);
+                    rotateRobot(90);
+                    moveRobot(false);
+                    moveRobot(false);
+                    break;
+                case HomeFrag.ROBOT_LDU:
+                    moveRobot(true);
+                    moveRobot(true);
+                    rotateRobot(-90);
+                    moveRobot(true);
+                    moveRobot(true);
+                    break;
+                case HomeFrag.ROBOT_RDD:
+                    moveRobot(false);
+                    moveRobot(false);
+                    rotateRobot(-90);
+                    moveRobot(false);
+                    moveRobot(false);
+                    break;
+                case HomeFrag.ROBOT_RDU:
+                    moveRobot(true);
+                    moveRobot(true);
+                    rotateRobot(90);
+                    moveRobot(true);
+                    moveRobot(true);
+                    break;
+                default:
+                    break;
             }
         }
     };
