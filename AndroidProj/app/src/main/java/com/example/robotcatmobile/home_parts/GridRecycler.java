@@ -1,5 +1,7 @@
 package com.example.robotcatmobile.home_parts;
 
+import static com.example.robotcatmobile.HomeFrag.ROBOT_DIRECTION;
+
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.ClipData;
@@ -126,7 +128,6 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                         }
                     }
                 }
-
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -137,10 +138,10 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     BroadcastReceiver mDirectionBR = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            String jsonString = intent.getStringExtra(HomeFrag.ROBOT_DIRECTION);
+            String jsonString = intent.getStringExtra(ROBOT_DIRECTION);
             try {
                 JSONObject json = new JSONObject(jsonString);
-                String direction = json.get(HomeFrag.ROBOT_DIRECTION).toString();
+                String direction = json.get(ROBOT_DIRECTION).toString();
                 switch (direction) {
                     case HomeFrag.ROBOT_LEFT:
                         rotateRobot(-90);
@@ -152,6 +153,35 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                         moveRobot(false);
                         break;
                     case HomeFrag.ROBOT_UP:
+                        moveRobot(true);
+                        break;
+                    case HomeFrag.ROBOT_LDD:
+                        // it will be almost the same as here
+                        moveRobot(false);
+                        moveRobot(false);
+                        rotateRobot(90);
+                        moveRobot(false);
+                        moveRobot(false);
+                        break;
+                    case HomeFrag.ROBOT_LDU:
+                        moveRobot(true);
+                        moveRobot(true);
+                        rotateRobot(-90);
+                        moveRobot(true);
+                        moveRobot(true);
+                        break;
+                    case HomeFrag.ROBOT_RDD:
+                        moveRobot(false);
+                        moveRobot(false);
+                        rotateRobot(-90);
+                        moveRobot(false);
+                        moveRobot(false);
+                        break;
+                    case  HomeFrag.ROBOT_RDU:
+                        moveRobot(true);
+                        moveRobot(true);
+                        rotateRobot(90);
+                        moveRobot(true);
                         moveRobot(true);
                         break;
                     default:
@@ -217,7 +247,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
             mRobotImg = parent.getRootView().findViewById(R.id.robot);
             // we just cheat here by hardcode everything here
             // register for the direction event
-            IntentFilter directionIntent = new IntentFilter(HomeFrag.ROBOT_DIRECTION);
+            IntentFilter directionIntent = new IntentFilter(ROBOT_DIRECTION);
             LocalBroadcastManager.getInstance(parent.getContext()).registerReceiver(mDirectionBR, directionIntent);
             IntentFilter obstacle_typeIntent = new IntentFilter(BluetoothConn.SENDING_TYPE);
             LocalBroadcastManager.getInstance(parent.getContext()).registerReceiver(mTypeBR, obstacle_typeIntent);

@@ -19,38 +19,81 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <RelativeLayout
+            <!-- The beginning of the arrow keys -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
                 <ImageButton
-                    android:id="@+id/right_btn"
+                    android:id="@+id/left_up_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toEndOf="@+id/forward_btn"
-                    app:srcCompat="@drawable/ic_arrow_move_right" />
-
-                <ImageButton
-                    android:id="@+id/back_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/forward_btn"
-                    android:layout_marginLeft="70dp"
-                    app:srcCompat="@drawable/ic_arrow_move_backward" />
-
-                <ImageButton
-                    android:id="@+id/left_btn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:srcCompat="@drawable/ic_arrow_move_left" />
-
+                    app:srcCompat="@drawable/ic_arrow_move_forward"
+                    android:rotation="315"
+                    />
                 <ImageButton
                     android:id="@+id/forward_btn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="72dp"
                     app:srcCompat="@drawable/ic_arrow_move_forward" />
-            </RelativeLayout>
+                <ImageButton
+                    android:id="@+id/right_up_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:rotation="45"
+                    app:srcCompat="@drawable/ic_arrow_move_forward" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <ImageButton
+                    android:id="@+id/left_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_arrow_move_left" />
+                <ImageButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_arrow_move_left"
+                    android:visibility="invisible"
+                    />
+                <ImageButton
+                    android:id="@+id/right_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_arrow_move_right" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <ImageButton
+                    android:id="@+id/left_down_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_arrow_move_backward"
+                    android:rotation="45"
+                    />
+                <ImageButton
+                    android:id="@+id/back_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_arrow_move_backward" />
+                <ImageButton
+                    android:id="@+id/right_down_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_arrow_move_backward"
+                    android:rotation="315"
+                    />
+            </LinearLayout>
+        </LinearLayout>
+        <!-- end of control buttons -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

@@ -24,7 +24,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.appcompat.widget.AppCompatImageButton;
 
-import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -42,6 +41,7 @@ import java.nio.charset.StandardCharsets;
  * A simple {@link Fragment} subclass.
  * create an instance of this fragment.
  */
+@RequiresApi(api = Build.VERSION_CODES.N)
 public class HomeFrag extends Fragment {
     // to know the status of the robot
     public static final String STATUS_KEY = "status";
@@ -56,7 +56,7 @@ public class HomeFrag extends Fragment {
     // const value of robot going left
     public static final String ROBOT_LEFT = "left";
     // const value of robot exploring
-    public static final String ROBOT_RDU = "right diagnol up";
+    public static final String ROBOT_RDU = "right diagonal up";
     public static final String ROBOT_LDU = "left diagonal up";
     public static final String ROBOT_RDD = "right diagonal down";
     public static final String ROBOT_LDD = "left diagonal down";
@@ -79,11 +79,11 @@ public class HomeFrag extends Fragment {
     AppCompatImageButton mForwardButton;
     // down button
     AppCompatImageButton mBackButton;
+    AppCompatImageButton mRDUButton;
+    AppCompatImageButton mLDUButton;
+    AppCompatImageButton mRDDButton;
+    AppCompatImageButton mLDDButton;
     // radio group for obstacles
-    //AppCompatImageButton mRDUButton;
-   // AppCompatImageButton mLDUButton;
-   // AppCompatImageButton mRDDButton;
-    //AppCompatImageButton mLDDButton;
     RadioGroup mToggleGroups;
     // button for explore
     AppCompatButton mExploreButton;
@@ -109,6 +109,8 @@ public class HomeFrag extends Fragment {
         super.onCreate(savedInstanceState);
         IntentFilter statusFilter = new IntentFilter(STATUS_KEY);
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(mStatusReceiver, statusFilter);
+        //IntentFilter directionFilter = new IntentFilter(ROBOT_DIRECTION);
+        //LocalBroadcastManager.getInstance(getContext()).registerReceiver(mRobotDirReceiver, directionFilter);
     }
 
     @Override
@@ -134,76 +136,37 @@ public class HomeFrag extends Fragment {
 
         mRightButton = view.findViewById(R.id.right_btn);
         mRightButton.setOnClickListener(view1 -> {
-            if (GridRecycler.mIsRobotPlaced) {
-                // send the turn right button
-                // put it in a json!
-                JSONObject rightJson = new JSONObject();
-                try {
-                    rightJson.put(ROBOT_DIRECTION, ROBOT_RIGHT);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                BluetoothConn.write(rightJson.toString().getBytes());
-                // send a message to move right
-                Intent jsonIntent = new Intent(ROBOT_DIRECTION);
-                jsonIntent.putExtra(ROBOT_DIRECTION, rightJson.toString());
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
-            }
+            ControlPressedBluetooth(ROBOT_RIGHT);
         });
         mLeftButton = view.findViewById(R.id.left_btn);
         mLeftButton.setOnClickListener(view1 -> {
-            if (GridRecycler.mIsRobotPlaced) {
-                // send the turn right button
-                // put it in a json!
-                JSONObject rightJson = new JSONObject();
-                try {
-                    rightJson.put(ROBOT_DIRECTION, ROBOT_LEFT);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                BluetoothConn.write(rightJson.toString().getBytes());
-                // send a message to say that it turns left
-                Intent jsonIntent = new Intent(ROBOT_DIRECTION);
-                jsonIntent.putExtra(ROBOT_DIRECTION, rightJson.toString());
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
-            }
+            ControlPressedBluetooth(ROBOT_LEFT);
         });
         mForwardButton = view.findViewById(R.id.forward_btn);
         mForwardButton.setOnClickListener(view1 -> {
-            if (GridRecycler.mIsRobotPlaced) {
-                // send the turn right button
-                // put it in a json!
-                JSONObject rightJson = new JSONObject();
-                try {
-                    rightJson.put(ROBOT_DIRECTION, ROBOT_UP);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                BluetoothConn.write(rightJson.toString().getBytes());
-                // then send a message to move forward
-                Intent jsonIntent = new Intent(ROBOT_DIRECTION);
-                jsonIntent.putExtra(ROBOT_DIRECTION, rightJson.toString());
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
-            }
+            ControlPressedBluetooth(ROBOT_UP);
         });
         mBackButton = view.findViewById(R.id.back_btn);
         mBackButton.setOnClickListener(view1 -> {
-            if (GridRecycler.mIsRobotPlaced) {
-                // send the turn right button
-                // put it in a json!
-                JSONObject rightJson = new JSONObject();
-                try {
-                    rightJson.put(ROBOT_DIRECTION, ROBOT_REVERSE);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                BluetoothConn.write(rightJson.toString().getBytes());
-                // send a message to move backwards
-                Intent jsonIntent = new Intent(ROBOT_DIRECTION);
-                jsonIntent.putExtra(ROBOT_DIRECTION, rightJson.toString());
-                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
-            }
+            ControlPressedBluetooth(ROBOT_REVERSE);
         });
+        mLDDButton = view.findViewById(R.id.left_down_btn);
+        mLDDButton.setOnClickListener(view1 -> {
+            ControlPressedBluetooth(ROBOT_LDD);
+        });
+        mLDUButton = view.findViewById(R.id.left_up_btn);
+        mLDUButton.setOnClickListener(view1 -> {
+            ControlPressedBluetooth(ROBOT_LDU);
+        });
+        mRDUButton = view.findViewById(R.id.right_up_btn);
+        mRDUButton.setOnClickListener(view1 -> {
+            ControlPressedBluetooth(ROBOT_RDU);
+        });
+        mRDDButton = view.findViewById(R.id.right_down_btn);
+        mRDDButton.setOnClickListener(view1 -> {
+            ControlPressedBluetooth(ROBOT_RDD);
+        });
+
         mToggleGroups = view.findViewById(R.id.toggle_groups);
 
         for (int j = 0; j < mToggleGroups.getChildCount(); j++) {
@@ -312,6 +275,7 @@ public class HomeFrag extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mStatusReceiver);
+        //LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mRobotDirReceiver);
         if (mStopWatchThread != null) {
             mStopWatchThread.removeCallbacks(runnable);
             mStopWatchThread = null;
@@ -338,6 +302,15 @@ public class HomeFrag extends Fragment {
         }
     };
 
+    BroadcastReceiver mRobotDirReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String directionVal = intent.getStringExtra(ROBOT_DIRECTION);
+            // to receive the direction then send it over!
+            ControlPressed(directionVal);
+        }
+    };
+
     //Stop Watch logic
     public  Runnable runnable = new Runnable() {
         @Override
@@ -360,4 +333,35 @@ public class HomeFrag extends Fragment {
         }
     };
 
+    void ControlPressedBluetooth(String toSend) {
+        if (GridRecycler.mIsRobotPlaced) {
+            // send the turn right button
+            // put it in a json!
+            JSONObject rightJson = new JSONObject();
+            try {
+                rightJson.put(ROBOT_DIRECTION, toSend);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            String jsonStr = rightJson.toString();
+            BluetoothConn.write(jsonStr.getBytes());
+            ControlPressed(toSend);
+        }
+    }
+
+    void ControlPressed(String toSend) {
+        if (GridRecycler.mIsRobotPlaced) {
+            JSONObject rightJson;
+            try {
+                rightJson = new JSONObject();
+                rightJson.put(ROBOT_DIRECTION, toSend);
+                // broadcast the message
+                Intent jsonIntent = new Intent(ROBOT_DIRECTION);
+                jsonIntent.putExtra(ROBOT_DIRECTION, rightJson.toString());
+                LocalBroadcastManager.getInstance(getContext()).sendBroadcast(jsonIntent);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
