@@ -64,6 +64,7 @@ class AlgoServer:
         return reply
 
     def server_data_transfer(self, server, conn):
+        conn.sendall('Server and client is connected.'.encode('utf-8'))
         # A big loop that sends/receives data until told not to.
         while True:
             # Receive the data
