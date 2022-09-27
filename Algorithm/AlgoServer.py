@@ -11,7 +11,7 @@ import constants
 class AlgoServer:
     def __init__(self):
         self.host = '192.168.34.22'
-        self.port = 5560
+        self.port = 6000
         self.input_obstacles = []
         # self.algo_obstacles_dict = {}
         self.algo_obstacles = []
@@ -93,7 +93,7 @@ class AlgoServer:
                     print("Data has been sent!")
                     robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
                                       "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
-                    conn.sendall(json.dump(robot_pos_json.encode('utf-8')))
+                    conn.sendall(json.dumps(robot_pos_json).encode('utf-8'))
                 elif command == 'REPEAT':
                     reply = self.server_repeat(dataMessage)
                     # Send the reply back to the client
@@ -118,7 +118,7 @@ class AlgoServer:
                         print("Data has been sent!")
                         robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
                                           "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
-                        conn.sendall(robot_pos_json.encode('utf-8'))
+                        conn.sendall(json.dumps(robot_pos_json).encode('utf-8'))
                     except:
                         reply = 'No more stm commands left.'
                 else:
