@@ -20,6 +20,7 @@ class AlgoServer:
         #     self.algo_obstacles.append(Obstacle(row, col, d))
         r_row, r_col, r_d = to_indices([1, 1, 1])  # For algorithm robot
         self.algo_robot = Robot(r_row, r_col, r_d)
+        self.command_list = None
 
         # self.algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
         # self.algo_path = ShortestPath(self.algo_grid)
@@ -51,11 +52,11 @@ class AlgoServer:
         algo_path = ShortestPath(algo_grid)
         algo_path.get_shortest_path()
 
-        str_stm_commands_list = ' '.join(get_stm_commands(algo_path.route))
-        print(str_stm_commands_list)
+        self.command_list = get_stm_commands(algo_path.route)
 
-        reply = str_stm_commands_list
-        return reply
+        # str_stm_commands_list = ' '.join(get_stm_commands(algo_path.route))
+        # print(str_stm_commands_list)
+
 
     def server_repeat(self, dataMessage):
         reply = dataMessage[1]
@@ -67,9 +68,11 @@ class AlgoServer:
             # Receive the data
             data = conn.recv(1024)  # receive the data
             data = data.decode('utf-8')
+            command_list_index = 0
             try:
                 parsed_data = json.loads(data)
                 self.android_to_algo(parsed_data)
+                print('added obstacle: ', parsed_data)
             except:
                 print('data is not a json string')
                 print('data is ' + str(data))
@@ -79,7 +82,8 @@ class AlgoServer:
                 print('data message is ' + str(dataMessage))
                 command = dataMessage[0]
                 if command == 'GET':
-                    reply = self.server_get()
+                    self.server_get()
+                    reply = self.command_list[0]
                 elif command == 'REPEAT':
                     reply = self.server_repeat(dataMessage)
                 elif command == 'EXIT':
@@ -89,6 +93,12 @@ class AlgoServer:
                     print("Our server is shutting down.")
                     server.close()
                     break
+                elif command == 'kkkk':
+                    try:
+                        command_list_index += 1
+                        reply = self.command_list[command_list_index]
+                    except:
+                        reply = 'No more stm commands left.'
                 else:
                     reply = 'Unknown Command'
                 # Send the reply back to the client
