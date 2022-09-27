@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import androidx.appcompat.widget.AppCompatImageButton;
 
+import android.view.ViewTreeObserver;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -109,8 +110,6 @@ public class HomeFrag extends Fragment {
         super.onCreate(savedInstanceState);
         IntentFilter statusFilter = new IntentFilter(STATUS_KEY);
         LocalBroadcastManager.getInstance(getContext()).registerReceiver(mStatusReceiver, statusFilter);
-        //IntentFilter directionFilter = new IntentFilter(ROBOT_DIRECTION);
-        //LocalBroadcastManager.getInstance(getContext()).registerReceiver(mRobotDirReceiver, directionFilter);
     }
 
     @Override
@@ -131,6 +130,11 @@ public class HomeFrag extends Fragment {
         mGridLayout.setAdapter(gridRecycler);
         // span count in this case is the number of columns
         mGridLayout.setLayoutManager(new GridLayoutManager(getContext(), GridRecycler.COLUMNS));
+        // for task 1
+        mGridLayout.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
+            // the layout is completed
+            gridRecycler.placeRobot(0,19);
+        });
 
         mStatusTxt = view.findViewById(R.id.robot_status);
 
@@ -275,7 +279,6 @@ public class HomeFrag extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mStatusReceiver);
-        //LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mRobotDirReceiver);
         if (mStopWatchThread != null) {
             mStopWatchThread.removeCallbacks(runnable);
             mStopWatchThread = null;
@@ -299,15 +302,6 @@ public class HomeFrag extends Fragment {
                 }
                 startTime();
             }
-        }
-    };
-
-    BroadcastReceiver mRobotDirReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String directionVal = intent.getStringExtra(ROBOT_DIRECTION);
-            // to receive the direction then send it over!
-            ControlPressed(directionVal);
         }
     };
 
