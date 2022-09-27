@@ -84,8 +84,20 @@ class AlgoServer:
                 if command == 'GET':
                     self.server_get()
                     reply = self.command_list[0]
+                    self.update_robot_pos(reply)
+                    # Send the reply back to the client
+                    print('reply is ' + str(reply))
+                    conn.sendall(reply.encode('utf-8'))
+                    print("Data has been sent!")
+                    robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
+                                      "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
+                    conn.sendall(json.dump(robot_pos_json.encode('utf-8')))
                 elif command == 'REPEAT':
                     reply = self.server_repeat(dataMessage)
+                    # Send the reply back to the client
+                    print('reply is ' + str(reply))
+                    conn.sendall(reply.encode('utf-8'))
+                    print("Data has been sent!")
                 elif command == 'EXIT':
                     print("Our client has left us :(")
                     break
@@ -97,15 +109,34 @@ class AlgoServer:
                     try:
                         command_list_index += 1
                         reply = self.command_list[command_list_index]
+                        self.update_robot_pos(reply)
+                        # Send the reply back to the client
+                        print('reply is ' + str(reply))
+                        conn.sendall(reply.encode('utf-8'))
+                        print("Data has been sent!")
+                        robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
+                                          "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
+                        conn.sendall(robot_pos_json.encode('utf-8'))
                     except:
                         reply = 'No more stm commands left.'
                 else:
                     reply = 'Unknown Command'
-                # Send the reply back to the client
-                print('reply is ' + str(reply))
-                conn.sendall(reply.encode('utf-8'))
-                print("Data has been sent!")
+                    # Send the reply back to the client
+                    print('reply is ' + str(reply))
+                    conn.sendall(reply.encode('utf-8'))
+                    print("Data has been sent!")
         conn.close()
+
+    def get_robot_direction(self):
+        direction = self.algo_robot.direction
+        if direction == '1':
+            return 'north'
+        elif direction == '2':
+            return 'east'
+        elif direction == '3':
+            return 'south'
+        elif direction == '4':
+            return 'west'
 
     def android_to_algo(self, data: dict):
         # Converts obstacle coordinates from Android into coordinates for algorithm
@@ -118,6 +149,22 @@ class AlgoServer:
             row, col, direction = to_indices(obstacle) # Algorithm coordinates
             self.algo_obstacles.append(Obstacle(row, col, direction))
             # print(self.input_obstacles)
+
+    def update_robot_pos(self, command):
+        if command[0] == 'w':
+            move = 'F'
+            grid_distance = int(command[1:3])/10
+            self.algo_robot.algo_move(move, grid_distance)
+        elif command[0] == 's':
+            move = 'B'
+            grid_distance = int(command[1:3])/10
+            self.algo_robot.algo_move(move, grid_distance)
+        elif command[0] == 'q':
+            move = 'L'
+            self.algo_robot.algo_turn(move)
+        elif command[0] == 'e':
+            move = 'R'
+            self.algo_robot.algo_turn(move)
 
     def main(self):
         s = self.setup_server()

@@ -171,13 +171,13 @@ class Robot:
         # if self.serial_comm:
         #     self.serial_comm.write("s")
 
-    def algo_move(self, move):
+    def algo_move(self, move, number_of_moves=1):
         new_pos = [self.row, self.col]
         if self.direction == 1:
             if move == 'F':
-                new_pos = [self.row - 1, self.col]
+                new_pos = [self.row - number_of_moves, self.col]
             elif move == 'B':
-                new_pos = [self.row + 1, self.col]
+                new_pos = [self.row + number_of_moves, self.col]
             else:
                 print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
@@ -187,9 +187,9 @@ class Robot:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 2:
             if move == 'F':
-                new_pos = [self.row, self.col + 1]
+                new_pos = [self.row, self.col + number_of_moves]
             elif move == 'B':
-                new_pos = [self.row, self.col - 1]
+                new_pos = [self.row, self.col - number_of_moves]
             else:
                 print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
@@ -199,9 +199,9 @@ class Robot:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 3:
             if move == 'F':
-                new_pos = [self.row + 1, self.col]
+                new_pos = [self.row + number_of_moves, self.col]
             elif move == 'B':
-                new_pos = [self.row - 1, self.col]
+                new_pos = [self.row - number_of_moves, self.col]
             else:
                 print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
@@ -211,9 +211,9 @@ class Robot:
                 print("Invalid move, new position is outside grid")
         elif self.direction == 4:
             if move == 'F':
-                new_pos = [self.row, self.col - 1]
+                new_pos = [self.row, self.col - number_of_moves]
             elif move == 'B':
-                new_pos = [self.row, self.col + 1]
+                new_pos = [self.row, self.col + number_of_moves]
             else:
                 print('Invalid move, nothing happened.')
             if self.check_valid_move(new_pos):
