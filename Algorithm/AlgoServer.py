@@ -12,12 +12,10 @@ class AlgoServer:
     def __init__(self):
         self.host = '192.168.34.22'
         self.port = 5560
-        # self.input_obstacles = []
-        self.algo_obstacles_dict = {}
+        self.input_obstacles = []
+        # self.algo_obstacles_dict = {}
         self.algo_obstacles = []
-        # for o in self.input_obstacles:
-        #     row, col, d = to_indices(o)
-        #     self.algo_obstacles.append(Obstacle(row, col, d))
+
         r_row, r_col, r_d = to_indices([1, 1, 1])  # For algorithm robot
         self.algo_robot = Robot(r_row, r_col, r_d)
         self.command_list = None
@@ -48,6 +46,10 @@ class AlgoServer:
 
     def server_get(self):
 
+        for o in self.input_obstacles:
+            row, col, d = to_indices(o)  # Algorithm coordinates
+            self.algo_obstacles.append(Obstacle(row, col, d))
+
         algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
         algo_path = ShortestPath(algo_grid)
         algo_path.get_shortest_path()
@@ -56,7 +58,6 @@ class AlgoServer:
 
         # str_stm_commands_list = ' '.join(get_stm_commands(algo_path.route))
         # print(str_stm_commands_list)
-
 
     def server_repeat(self, dataMessage):
         reply = dataMessage[1]
@@ -138,17 +139,35 @@ class AlgoServer:
         elif direction == '4':
             return 'west'
 
-    def android_to_algo(self, data: dict):
+    def get_obstacle(self, x1, y1):
+
+        for o in self.input_obstacles:
+            x2, y2, d2 = o
+            if x1 == x2 and y1 == y2:
+                return o
+
+    def android_to_algo(self, data):
         # Converts obstacle coordinates from Android into coordinates for algorithm
 
-        if "type" in data.keys() and data["type"] == "obstacle":
+        if "type" in data.keys():
             x = int(data['x'])
             y = AREA_WIDTH//CELL_SIZE - 1 - int(data['y'])
-            d = data["direction"].upper()[0]
+
+            if "direction" in data.keys():
+                d = data["direction"].upper()[0]
+            else:
+                d = 0
+
             obstacle = [x, y, d]  # Simulator coordinates
-            row, col, direction = to_indices(obstacle) # Algorithm coordinates
-            self.algo_obstacles.append(Obstacle(row, col, direction))
-            # print(self.input_obstacles)
+
+            if data["type"] == "obstacle":
+                self.input_obstacles.append(obstacle)
+            elif data["type"] == "remove_obstacle":
+                to_remove = self.get_obstacle(x, y)
+                if to_remove:
+                    self.input_obstacles.remove(to_remove)
+                else:
+                    print(f"Obstacle at ({x}, {y}) not found")
 
     def update_robot_pos(self, command):
         if command[0] == 'w':
