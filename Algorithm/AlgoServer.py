@@ -53,8 +53,13 @@ class AlgoServer:
         algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
         algo_path = ShortestPath(algo_grid)
         algo_path.get_shortest_path()
+        print("Routes = ", algo_path.route)
 
-        self.command_list = get_stm_commands(algo_path.route)
+        if len(algo_path.route) != 0:
+            self.command_list = get_stm_commands(algo_path.route)
+            print(f"command_list = {self.command_list}")
+        else:
+            print('No route')
 
         # str_stm_commands_list = ' '.join(get_stm_commands(algo_path.route))
         # print(str_stm_commands_list)
@@ -85,15 +90,23 @@ class AlgoServer:
                 command = dataMessage[0]
                 if command == 'GET':
                     self.server_get()
-                    reply = self.command_list[0]
-                    self.update_robot_pos(reply)
-                    # Send the reply back to the client
-                    print('reply is ' + str(reply))
-                    conn.sendall(reply.encode('utf-8'))
-                    print("Data has been sent!")
-                    robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
-                                      "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
-                    conn.sendall(json.dumps(robot_pos_json).encode('utf-8'))
+                    print("server_get done")
+
+                    if self.command_list is not None:
+                        reply = self.command_list[0]
+                        self.update_robot_pos(reply)
+                        # Send the reply back to the client
+                        print('reply is ' + str(reply))
+                        conn.sendall(reply.encode('utf-8'))
+                        print("Move has been sent!")
+                        robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
+                                          "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
+                        reply = json.dumps(robot_pos_json)
+                        conn.sendall(reply.encode('utf-8'))
+                        print("Updated robot position has been sent")
+                    else:
+                        conn.sendall("No path found".encode('utf-8'))
+
                 elif command == 'REPEAT':
                     reply = self.server_repeat(dataMessage)
                     # Send the reply back to the client
@@ -118,7 +131,8 @@ class AlgoServer:
                         print("Data has been sent!")
                         robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
                                           "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
-                        conn.sendall(json.dumps(robot_pos_json).encode('utf-8'))
+                        reply = json.dumps(robot_pos_json)
+                        conn.sendall(reply.encode('utf-8'))
                     except:
                         reply = 'No more stm commands left.'
                 else:
@@ -132,20 +146,20 @@ class AlgoServer:
     def get_robot_direction(self):
         direction = self.algo_robot.direction
         if direction == '1':
-            return 'north'
+            return 'NORTH'
         elif direction == '2':
-            return 'east'
+            return 'EAST'
         elif direction == '3':
-            return 'south'
+            return 'SOUTH'
         elif direction == '4':
-            return 'west'
+            return 'WEST'
 
     def get_obstacle(self, x1, y1):
 
-        for o in self.input_obstacles:
-            x2, y2, d2 = o
+        for i, obstacle in enumerate(self.input_obstacles):
+            x2, y2, d2 = obstacle
             if x1 == x2 and y1 == y2:
-                return o
+                return i
 
     def android_to_algo(self, data):
         # Converts obstacle coordinates from Android into coordinates for algorithm
@@ -155,18 +169,21 @@ class AlgoServer:
             y = AREA_WIDTH//CELL_SIZE - 1 - int(data['y'])
 
             if "direction" in data.keys():
-                d = data["direction"].upper()[0]
+                d = data["direction"][0]
             else:
                 d = 0
 
             obstacle = [x, y, d]  # Simulator coordinates
+            existing = self.get_obstacle(x, y)
 
             if data["type"] == "obstacle":
-                self.input_obstacles.append(obstacle)
+                if existing is not None:
+                    self.input_obstacles[existing][2] = d
+                else:
+                    self.input_obstacles.append(obstacle)
             elif data["type"] == "remove_obstacle":
-                to_remove = self.get_obstacle(x, y)
-                if to_remove:
-                    self.input_obstacles.remove(to_remove)
+                if existing:
+                    self.input_obstacles.pop(existing)
                 else:
                     print(f"Obstacle at ({x}, {y}) not found")
 

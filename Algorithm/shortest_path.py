@@ -12,7 +12,7 @@ class ShortestPath:
         self.grid = grid
         self.start = helper.to_indices([1, 1, 1])  # 1: NORTH
         self.distance = float('inf')  # distance of chosen shortest route
-        self.route = None
+        self.route = []
 
     @staticmethod
     def get_child(curr_node, move):
@@ -121,6 +121,10 @@ class ShortestPath:
             possible = True
 
             for viewpos in route:
+
+                if float('-inf') in viewpos:
+                    print("Inaccessible obstacle")
+                    return
 
                 if total_dist > chosen_route[0]:
                     possible = False

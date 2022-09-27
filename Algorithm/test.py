@@ -63,13 +63,15 @@ if __name__ == "__main__":
     r_row, r_col, r_dir = to_indices([1, 1, 1])
     test_robot = Robot(r_row, r_col, r_dir)
 
-    test_grid = Grid(test_obstacles, test_robot)
+    test_grid = Grid([], test_robot)
     print(test_grid.robot)
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
     for r in test_path.route:
         print(r.route)
+    if len(test_path.route) == 0:
+        print("No routes")
     print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
 
     print(f'============== TURN_DIST = {TURN_DIST} ==============')
