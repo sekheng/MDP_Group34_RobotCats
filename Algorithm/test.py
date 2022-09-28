@@ -21,9 +21,11 @@ def move_robot_on_grid(shortest_path_object):
             print('---------------------------------------')
             test_grid.delete_cur_robot_position()
             if move == 'F' or move == 'B':
-                test_robot.algo_move(move)
+                test_robot.move(move)
             elif move == 'L' or move == 'R':
-                test_robot.algo_turn(move)
+                test_robot.turn(move)
+            elif move == 'IL' or move == 'IR':
+                test_robot.in_place(move)
 
             test_grid.mark_robot()
             test_grid.print_grid()
@@ -53,8 +55,7 @@ if __name__ == "__main__":
     # test_server = AlgoServer()
     # test_obstacle_conversion(test_server)
 
-    test_obstacles = [[1, 4, 'S']]
-    # [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+    test_obstacles = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
     for idx, o in enumerate(test_obstacles):
         row, col, dir = to_indices(o)
         test_obstacles[idx] = Obstacle(row, col, dir)

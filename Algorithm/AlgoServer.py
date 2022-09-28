@@ -216,20 +216,20 @@ class AlgoServer:
         if command[0] == 'w':
             move = 'F'
             grid_distance = int(command[1:4])//10
-            self.algo_robot.algo_move(move, grid_distance)
+            self.algo_robot.move(move, grid_distance)
         elif command[0] == 's':
             move = 'B'
             grid_distance = int(command[1:4])//10
-            self.algo_robot.algo_move(move, grid_distance)
+            self.algo_robot.move(move, grid_distance)
         elif command[0] == 'q':
             print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
             move = 'L'
-            self.algo_robot.algo_turn(move)
+            self.algo_robot.turn(move)
             print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
         elif command[0] == 'e':
             print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
             move = 'R'
-            self.algo_robot.algo_turn(move)
+            self.algo_robot.turn(move)
             print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
 
     def main(self):
