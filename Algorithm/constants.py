@@ -10,7 +10,7 @@ AREA_LENGTH = 200
 # robot
 CAR_WIDTH = 30
 CAR_LENGTH = 30
-VIEW_DIST = 20 + 10 + 5 # 20cm between camera and image + 10cm car border
+VIEW_DIST = 10 + 5 # 20cm between camera and image + 10cm car border
 TURN_DIST = 30
 TURN_GRIDS = math.ceil(TURN_DIST/CELL_SIZE)
 

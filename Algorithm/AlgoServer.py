@@ -11,7 +11,7 @@ import constants
 class AlgoServer:
     def __init__(self):
         self.host = '192.168.34.22'
-        self.port = 6000
+        self.port = 8080
         self.input_obstacles = []
         # self.algo_obstacles_dict = {}
         self.algo_obstacles = []
@@ -51,11 +51,12 @@ class AlgoServer:
             self.algo_obstacles.append(Obstacle(row, col, d))
 
         algo_grid = Grid(obstacles=self.algo_obstacles, robot=self.algo_robot)
+        print(f"Initial robot {self.algo_robot.get_col()}, {self.algo_robot.get_row()}, {self.algo_robot.get_direction()}")
         algo_path = ShortestPath(algo_grid)
         algo_path.get_shortest_path()
         print("Routes = ", algo_path.route)
 
-        if len(algo_path.route) != 0:
+        if algo_path.route is not None and len(algo_path.route) != 0:
             self.command_list = get_stm_commands(algo_path.route)
             print(f"command_list = {self.command_list}")
         else:
@@ -71,11 +72,11 @@ class AlgoServer:
     def server_data_transfer(self, server, conn):
         conn.sendall('Server and client is connected.'.encode('utf-8'))
         # A big loop that sends/receives data until told not to.
+        command_list_index = 0
         while True:
             # Receive the data
             data = conn.recv(1024)  # receive the data
             data = data.decode('utf-8')
-            command_list_index = 0
             try:
                 parsed_data = json.loads(data)
                 self.android_to_algo(parsed_data)
@@ -92,18 +93,32 @@ class AlgoServer:
                     self.server_get()
                     print("server_get done")
 
-                    if self.command_list is not None:
+                    if self.command_list or self.command_list is not None:
                         reply = self.command_list[0]
                         self.update_robot_pos(reply)
                         # Send the reply back to the client
                         print('reply is ' + str(reply))
                         conn.sendall(reply.encode('utf-8'))
                         print("Move has been sent!")
+
+                        # dir = 'NORTH'
+                        # if self.get_robot_direction() is None:
+                        #     print("robot direction is none")
+                        #
+                        # if self.get_robot_direction() == 1:
+                        #     dir = 'NORTH'
+                        # elif self.get_robot_direction() == 2:
+                        #     dir = 'EAST'
+                        # elif self.get_robot_direction() == 3:
+                        #     dir = 'SOUTH'
+                        # elif self.get_robot_direction() == 4:
+                        #     dir = 'WEST'
+
                         robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
-                                          "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
+                                          "y": str(self.algo_robot.get_row()), "direction": str(self.get_robot_direction())}
                         reply = json.dumps(robot_pos_json)
                         conn.sendall(reply.encode('utf-8'))
-                        print("Updated robot position has been sent")
+                        print(f"Updated robot position = {reply} has been sent")
                     else:
                         conn.sendall("No path found".encode('utf-8'))
 
@@ -123,16 +138,26 @@ class AlgoServer:
                 elif command == 'kkkk':
                     try:
                         command_list_index += 1
+                        print("index =", command_list_index)
                         reply = self.command_list[command_list_index]
-                        self.update_robot_pos(reply)
-                        # Send the reply back to the client
-                        print('reply is ' + str(reply))
-                        conn.sendall(reply.encode('utf-8'))
+
+                        if reply != 'P':
+                            print('reply is ' + str(reply))
+                            conn.sendall(reply.encode('utf-8'))
+                            self.update_robot_pos(reply)
+                            robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
+                                              "y": str(self.algo_robot.get_row()),
+                                              "direction": str(self.get_robot_direction())}
+                            new_pos = json.dumps(robot_pos_json)
+                            conn.sendall(new_pos.encode('utf-8'))
+                            print(f"Updated robot position = {reply} has been sent")
+
+                        elif reply == 'P':
+                            print('reply is ' + str(reply))
+                            conn.sendall(reply.encode('utf-8'))
+
                         print("Data has been sent!")
-                        robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
-                                          "y": str(self.algo_robot.get_row()), "direction": self.get_robot_direction()}
-                        reply = json.dumps(robot_pos_json)
-                        conn.sendall(reply.encode('utf-8'))
+
                     except:
                         reply = 'No more stm commands left.'
                 else:
@@ -145,13 +170,13 @@ class AlgoServer:
 
     def get_robot_direction(self):
         direction = self.algo_robot.direction
-        if direction == '1':
+        if direction == 1:
             return 'NORTH'
-        elif direction == '2':
+        elif direction == 2:
             return 'EAST'
-        elif direction == '3':
+        elif direction == 3:
             return 'SOUTH'
-        elif direction == '4':
+        elif direction == 4:
             return 'WEST'
 
     def get_obstacle(self, x1, y1):
@@ -190,18 +215,22 @@ class AlgoServer:
     def update_robot_pos(self, command):
         if command[0] == 'w':
             move = 'F'
-            grid_distance = int(command[1:3])/10
+            grid_distance = int(command[1:4])//10
             self.algo_robot.algo_move(move, grid_distance)
         elif command[0] == 's':
             move = 'B'
-            grid_distance = int(command[1:3])/10
+            grid_distance = int(command[1:4])//10
             self.algo_robot.algo_move(move, grid_distance)
         elif command[0] == 'q':
+            print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
             move = 'L'
             self.algo_robot.algo_turn(move)
+            print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
         elif command[0] == 'e':
+            print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
             move = 'R'
             self.algo_robot.algo_turn(move)
+            print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
 
     def main(self):
         s = self.setup_server()

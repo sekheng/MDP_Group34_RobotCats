@@ -224,7 +224,7 @@ class ShortestPath:
                 child = self.get_child(curr, move)
 
                 if move == 'R' or move == 'L':
-                    child.g = 20
+                    child.g = 30
 
                 if move == 'B':
                     child.g = 5
@@ -232,7 +232,7 @@ class ShortestPath:
                 if not self.is_move_valid(curr.pos, child.pos, move):
                     continue
 
-                child.g += curr.g + 10
+                child.g += curr.g + 1
                 child.h = self.h(child.pos, goal.pos)
                 child.f = child.g + child.h
 

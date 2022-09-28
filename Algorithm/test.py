@@ -53,7 +53,8 @@ if __name__ == "__main__":
     # test_server = AlgoServer()
     # test_obstacle_conversion(test_server)
 
-    test_obstacles = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+    test_obstacles = [[1, 4, 'S']]
+    # [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
     for idx, o in enumerate(test_obstacles):
         row, col, dir = to_indices(o)
         test_obstacles[idx] = Obstacle(row, col, dir)
@@ -63,14 +64,15 @@ if __name__ == "__main__":
     r_row, r_col, r_dir = to_indices([1, 1, 1])
     test_robot = Robot(r_row, r_col, r_dir)
 
-    test_grid = Grid([], test_robot)
+    test_grid = Grid(test_obstacles, test_robot)
     print(test_grid.robot)
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
-    for r in test_path.route:
-        print(r.route)
-    if len(test_path.route) == 0:
+    if test_path.route is not None:
+        for r in test_path.route:
+            print(r.route)
+    else:
         print("No routes")
     print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
 

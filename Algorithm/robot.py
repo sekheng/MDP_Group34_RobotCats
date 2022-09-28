@@ -173,6 +173,7 @@ class Robot:
 
     def algo_move(self, move, number_of_moves=1):
         new_pos = [self.row, self.col]
+        print("algo_move robot ")
         if self.direction == 1:
             if move == 'F':
                 new_pos = [self.row - number_of_moves, self.col]
