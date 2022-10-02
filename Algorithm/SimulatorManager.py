@@ -9,7 +9,7 @@ from obstacle import *
 from robot import *
 from route import *
 from shortest_path import *
-#from actions import *
+from actions import *
 from SimulatorGUI import *
 from SimulatorGrid import *
 from time import perf_counter

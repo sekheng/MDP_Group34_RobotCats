@@ -157,11 +157,8 @@ class ShortestPath:
         cache = {}  # key = (start.id,goal.id)
         # value = point-to-point path and distance
         # already computed point-to-point distances
-        viewing_pos = []
-        for obs in self.grid.obstacles:
-            for view_pos in obs.viewpos:
-                viewing_pos.append(view_pos)
-        #viewing_pos = list(obs.viewpos for obs in self.grid.obstacles)
+
+        viewing_pos = list(obs.viewpos for obs in self.grid.obstacles)
         print("Viewing positions:", viewing_pos)
         candidate_routes = list(itertools.permutations(viewing_pos))  # get all path permutations
         chosen_route = (float('inf'), None)  # total distance, path
