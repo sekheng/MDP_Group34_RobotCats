@@ -148,39 +148,39 @@ class Robot:
         if self.direction == 1:
             if turn_direction == 'L':
                 self.set_direction(4)
-                self.set_row(self.row - TURN_GRIDS)
-                self.set_col(self.col - TURN_GRIDS)
+                self.set_row(self.row - 1)
+                self.set_col(self.col - 2)
             elif turn_direction == 'R':
                 self.set_direction(2)
-                self.set_row(self.row - TURN_GRIDS)
-                self.set_col(self.col + TURN_GRIDS)
+                self.set_row(self.row - 1)
+                self.set_col(self.col + 2)
         elif self.direction == 2:
             if turn_direction == 'L':
                 self.set_direction(1)
-                self.set_row(self.row - TURN_GRIDS)
-                self.set_col(self.col + TURN_GRIDS)
+                self.set_row(self.row - 2)
+                self.set_col(self.col + 1)
             elif turn_direction == 'R':
                 self.set_direction(3)
-                self.set_row(self.row + TURN_GRIDS)
-                self.set_col(self.col + TURN_GRIDS)
+                self.set_row(self.row + 2)
+                self.set_col(self.col + 1)
         elif self.direction == 3:
             if turn_direction == 'L':
                 self.set_direction(2)
-                self.set_row(self.row + TURN_GRIDS)
-                self.set_col(self.col + TURN_GRIDS)
+                self.set_row(self.row + 1)
+                self.set_col(self.col + 2)
             elif turn_direction == 'R':
                 self.set_direction(4)
-                self.set_row(self.row + TURN_GRIDS)
-                self.set_col(self.col - TURN_GRIDS)
+                self.set_row(self.row + 1)
+                self.set_col(self.col - 2)
         elif self.direction == 4:
             if turn_direction == 'L':
                 self.set_direction(3)
-                self.set_row(self.row + TURN_GRIDS)
-                self.set_col(self.col - TURN_GRIDS)
+                self.set_row(self.row + 2)
+                self.set_col(self.col - 1)
             elif turn_direction == 'R':
                 self.set_direction(1)
-                self.set_row(self.row - TURN_GRIDS)
-                self.set_col(self.col - TURN_GRIDS)
+                self.set_row(self.row - 2)
+                self.set_col(self.col - 1)
 
         self.update_cells_after_move()
 

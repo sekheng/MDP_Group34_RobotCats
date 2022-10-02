@@ -38,30 +38,30 @@ class ShortestPath:
                 new_pos[1] += 1
         elif move == 'L':
             if curr_pos[2] == 1:  # N
-                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - 1, curr_pos[1] - 2
                 new_pos[2] = 4  # W
             elif curr_pos[2] == 2:  # E
-                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - 2, curr_pos[1] + 1
                 new_pos[2] = 1  # N
             elif curr_pos[2] == 3:  # S
-                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + 1, curr_pos[1] + 2
                 new_pos[2] = 2  # E
             elif curr_pos[2] == 4:  # W
-                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + 2, curr_pos[1] - 1
                 new_pos[2] = 3  # S
             # new_pos[2] = (curr_pos[2] + 3) % 4
         elif move == 'R':
             if curr_pos[2] == 1:  # N
-                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - 1, curr_pos[1] + 2
                 new_pos[2] = 2 # E
             elif curr_pos[2] == 2:  # E
-                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] + TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + 2, curr_pos[1] + 1
                 new_pos[2] = 3  # S
             elif curr_pos[2] == 3:  # S
-                new_pos[0], new_pos[1] = curr_pos[0] + TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] + 1, curr_pos[1] - 2
                 new_pos[2] = 4  # W
             elif curr_pos[2] == 4:  # W
-                new_pos[0], new_pos[1] = curr_pos[0] - TURN_GRIDS, curr_pos[1] - TURN_GRIDS
+                new_pos[0], new_pos[1] = curr_pos[0] - 2, curr_pos[1] - 1
                 new_pos[2] = 1  # N
             # new_pos[2] = (curr_pos[2] + 1) % 4
         elif move == 'IL':
@@ -91,64 +91,63 @@ class ShortestPath:
             return self.is_turn_valid(curr_pos, move)
 
         if move == 'IL' or move == 'IR':
-            return self.is_in_place_valid(curr_pos, move)
+            return self.is_in_place_valid(curr_pos)
 
         return self.grid.robot_pos_is_valid(new_pos)
 
-    def is_in_place_valid(self, curr_pos, move):
+    def is_in_place_valid(self, curr_pos):
 
         xi, yi, d = curr_pos
 
         if d == 1:  # North
-            if move == 'IL':
-                xn, yn = xi, yi - DISP
-            if move == 'IR':
-                xn, yn = xi, yi + DISP
+            xm, ym = xi - DISP, yi
         elif d == 2:  # East
-            if move == 'IL':
-                xn, yn = xi - DISP, yi
-            if move == 'IR':
-                xn, yn = xi + DISP, yi
+            xm, ym = xi, yi + DISP
         elif d == 3:  # South
-            if move == 'IL':
-                xn, yn = xi, yi + DISP
-            if move == 'IR':
-                xn, yn = xi, yi - DISP
+            xm, ym = xi + DISP, yi
         elif d == 4:  # West
-            if move == 'IL':
-                xn, yn = xi + DISP, yi
-            if move == 'IR':
-                xn, yn = xi - DISP, yi
+            xm, ym = xi, yi - DISP
 
-        for x in range(min(xi, xn), max(xi, xn) + 1):
-            for y in range(min(yi, yn), max(yi, yn) + 1):
-                if not self.grid.robot_pos_is_valid([x, y, None]):
-                    return False
+        if not self.grid.robot_pos_is_valid([xm, ym, None]):
+            return False
 
         return True
 
     def is_turn_valid(self, curr_pos, move):
 
         xi, yi, d = curr_pos
+        # x is row, y is column
 
-        # print("d =", d, ",move =", move)
+        if d == 1:  # North
+            if move == 'L':
+                xn, yn = xi - 1, yi - 2
+            if move == 'R':
+                xn, yn = xi - 1, yi + 2
+            xm, ym = xi - 1, yi
+        if d == 2:  # East
+            if move == 'L':
+                xn, yn = xi - 2, yi + 1
+            if move == 'R':
+                xn, yn = xi + 2, yi + 1
+            xm, ym = xi, yi + 1
+        if d == 3:  # South
+            if move == 'L':
+                xn, yn = xi + 1, yi + 2
+            if move == 'R':
+                xn, yn = xi + 1, yi - 2
+            xm, ym = xi + 1, yi
+        if d == 4:  # West
+            if move == 'L':
+                xn, yn = xi + 2, yi - 1
+            if move == 'R':
+                xn, yn = xi - 2, yi - 1
+            xm, ym = xi, yi - 1
 
-        if (d == 1 and move == 'L') or (d == 4 and move == 'R'):
-            xn, yn = xi - TURN_GRIDS, yi - TURN_GRIDS
-            # print("xn =", xn)
-        elif (d == 4 and move == 'L') or (d == 3 and move == 'R'):
-            xn, yn = xi + TURN_GRIDS, yi - TURN_GRIDS
-            # print("xn =", xn)
-        elif (d == 3 and move == 'L') or (d == 2 and move == 'R'):
-            xn, yn = xi + TURN_GRIDS, yi + TURN_GRIDS
-            # print("xn =", xn)
-        elif (d == 2 and move == 'L') or (d == 1 and move == 'R'):
-            xn, yn = xi - TURN_GRIDS, yi + TURN_GRIDS
+        to_check = [[xm, ym, d], [xn, yn, d]]
 
-        for x in range(min(xi, xn), max(xi, xn) + 1):
-            for y in range(min(yi, yn), max(yi, yn) + 1):
-                if not self.grid.robot_pos_is_valid([x, y, None]):
-                    return False
+        for pos in to_check:
+            if not self.grid.robot_pos_is_valid(pos):
+                return False
 
         return True
 
@@ -212,10 +211,8 @@ class ShortestPath:
                 # paths = paths + ucs.get_path()
                 prev = goal
 
-
                 if pt_to_pt.route:
                     paths.append(pt_to_pt)
-
 
             if total_dist < chosen_route[0] and possible:
                 if len(paths) != len(self.grid.obstacles):
