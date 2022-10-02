@@ -265,6 +265,10 @@ class ShortestPath:
                 path = []
                 current = curr
                 dist = curr.g
+
+                if current.move is None:  # if car is already at viewpos from the start +_+
+                    path.append('X')
+
                 while current.move is not None:
                     path.append(current.move)
                     current = current.parent
