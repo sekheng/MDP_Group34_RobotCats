@@ -577,7 +577,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 mGridButton.setBackground(ContextCompat.getDrawable(mGridButton.getContext(), R.drawable.grid_design));
                 mGridButton.setOnLongClickListener(null);
                 setObstacleDirection(Direction.NONE);
-                setObstacleImage("");
+                setObstacleImage(String.format("%i,%i", mX, mY));
             }
         }
     }

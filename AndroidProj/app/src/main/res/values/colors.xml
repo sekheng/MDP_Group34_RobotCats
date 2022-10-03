@@ -9,7 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="colorPrimary">#262424</color>
     <color name="colorPrimaryDark">#262424</color>
-    <color name="colorAccent">#D9D9D9</color>
+    <color name="colorAccent">#CFCFCF</color>
     <color name="chat_gray_background">#BEBEBE</color>
     <color name="chat_input">#332E2E</color>
     <color name="robot_status_title">#039BE5</color>
