@@ -151,7 +151,7 @@ class AlgoServer:
                                               "direction": str(self.get_robot_direction())}
                             new_pos = json.dumps(robot_pos_json)
                             conn.sendall(new_pos.encode('utf-8'))
-                            print(f"Updated robot position = {reply} has been sent")
+                            print(f"Updated robot position = {new_pos} has been sent")
 
                         elif reply == 'P':
                             print('reply is ' + str(reply))
@@ -231,6 +231,16 @@ class AlgoServer:
             print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
             move = 'R'
             self.algo_robot.turn(move)
+            print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
+        elif command[0] == 'a':
+            print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
+            move = 'IL'
+            self.algo_robot.in_place(move)
+            print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
+        elif command[0] == 'd':
+            print("Prev pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
+            move = 'IR'
+            self.algo_robot.in_place(move)
             print("New pos =", self.algo_robot.get_col(), self.algo_robot.get_row(), self.algo_robot.get_direction())
 
     def main(self):
