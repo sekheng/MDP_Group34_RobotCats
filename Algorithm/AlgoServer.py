@@ -58,6 +58,7 @@ class AlgoServer:
 
         if algo_path.route is not None and len(algo_path.route) != 0:
             self.command_list = get_stm_commands(algo_path.route)
+            # self.command_list.insert(0, 'P')  # when we need to bulldoze first obstacle
             print(f"command_list = {self.command_list}")
         else:
             print('No route')
