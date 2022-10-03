@@ -136,6 +136,10 @@ public class HomeFrag extends Fragment {
             public void onGlobalLayout() {
                 // the layout is completed
                 gridRecycler.placeRobot(0, 19);
+                // and set the grid!
+                for (int num = 0; num < gridRecycler.arrOfGrids.length; ++num) {
+                    gridRecycler.arrOfGrids[num].setObstacle(false);
+                }
             mGridLayout.getViewTreeObserver().removeOnGlobalLayoutListener( this);
         }
         });

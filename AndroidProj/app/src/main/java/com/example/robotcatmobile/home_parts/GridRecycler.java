@@ -9,6 +9,7 @@ import android.content.ClipDescription;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.view.DragEvent;
@@ -295,7 +296,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     /*
     The individual buttons at the grid
      */
-    class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         /*
          position along the x axis
          */
@@ -561,7 +562,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 e.printStackTrace();
             }
             setObstacle(isObstacle);
-            setObstacleImage(imageStr);
+            if (isObstacle == true)
+                setObstacleImage(imageStr);
             setObstacleDirection(direction);
         }
 
@@ -572,13 +574,15 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
             if (mIsObstacle) {
                 mGridButton.setBackground(ContextCompat.getDrawable(mGridButton.getContext(), R.drawable.obstacle_design));
                 mGridButton.setOnLongClickListener(mOnLongClickListener);
+                mGridButton.setTextColor(itemView.getResources().getColor(R.color.colorAccent));
             }
                 // we can also toggle between clear space and obstacle!
             else {
                 mGridButton.setBackground(ContextCompat.getDrawable(mGridButton.getContext(), R.drawable.grid_design));
                 mGridButton.setOnLongClickListener(null);
                 setObstacleDirection(Direction.NONE);
-                setObstacleImage("");
+                mGridButton.setTextColor(itemView.getResources().getColor(R.color.black));
+                setObstacleImage(String.format("%s,%s", mX, mY));
             }
         }
     }
