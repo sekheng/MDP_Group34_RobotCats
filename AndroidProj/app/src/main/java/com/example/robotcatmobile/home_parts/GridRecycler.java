@@ -121,7 +121,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                                 theGrid.mGridButton.setTextSize((float)json.getInt(FONT_SIZE_KEY));
                             }
                         } else if (type.equalsIgnoreCase(ROBOT_VALUE)) {
-                            placeRobot(x,y);
+                            // because we have to account for center of the robot
+                            placeRobot(x - 1,y - 1);
                             mAngleOfRobot = curDir.getValue();
                             // we can reuse and fake it
                             rotateRobot(0);
@@ -350,8 +351,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                             }
                             else {
                                 jsonObject.put(BluetoothConn.SENDING_TYPE, ROBOT_VALUE);
-                                jsonObject.put(X_KEY, mRobotX);
-                                jsonObject.put(Y_KEY, mRobotY);
+                                jsonObject.put(X_KEY, mRobotX + 1);
+                                jsonObject.put(Y_KEY, mRobotY + 1);
                                 jsonObject.put(DIRECTION_KEY, mRobotDirection);
                             }
                             BluetoothConn.write(jsonObject.toString().getBytes(StandardCharsets.UTF_8));

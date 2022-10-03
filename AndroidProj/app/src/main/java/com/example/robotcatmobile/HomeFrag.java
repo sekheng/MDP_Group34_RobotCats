@@ -131,9 +131,13 @@ public class HomeFrag extends Fragment {
         // span count in this case is the number of columns
         mGridLayout.setLayoutManager(new GridLayoutManager(getContext(), GridRecycler.COLUMNS));
         // for task 1
-        mGridLayout.getViewTreeObserver().addOnGlobalLayoutListener(() -> {
-            // the layout is completed
-            gridRecycler.placeRobot(0,19);
+        mGridLayout.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener(){
+            @Override
+            public void onGlobalLayout() {
+                // the layout is completed
+                gridRecycler.placeRobot(0, 19);
+            mGridLayout.getViewTreeObserver().removeOnGlobalLayoutListener( this);
+        }
         });
 
         mStatusTxt = view.findViewById(R.id.robot_status);

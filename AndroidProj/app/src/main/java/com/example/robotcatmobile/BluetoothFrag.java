@@ -378,7 +378,4 @@ public class BluetoothFrag extends Fragment {
             }
         }
     };
-
-
-
 }

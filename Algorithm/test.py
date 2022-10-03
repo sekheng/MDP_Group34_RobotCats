@@ -21,9 +21,11 @@ def move_robot_on_grid(shortest_path_object):
             print('---------------------------------------')
             test_grid.delete_cur_robot_position()
             if move == 'F' or move == 'B':
-                test_robot.algo_move(move)
+                test_robot.move(move)
             elif move == 'L' or move == 'R':
-                test_robot.algo_turn(move)
+                test_robot.turn(move)
+            elif move == 'IL' or move == 'IR':
+                test_robot.in_place(move)
 
             test_grid.mark_robot()
             test_grid.print_grid()
@@ -63,14 +65,15 @@ if __name__ == "__main__":
     r_row, r_col, r_dir = to_indices([1, 1, 1])
     test_robot = Robot(r_row, r_col, r_dir)
 
-    test_grid = Grid([], test_robot)
+    test_grid = Grid(test_obstacles, test_robot)
     print(test_grid.robot)
 
     test_path = ShortestPath(test_grid)
     test_path.get_shortest_path()
-    for r in test_path.route:
-        print(r.route)
-    if len(test_path.route) == 0:
+    if test_path.route is not None:
+        for r in test_path.route:
+            print(r.route)
+    else:
         print("No routes")
     print("Shortest Route:", test_path.route, "Distance travelled =", test_path.distance)
 

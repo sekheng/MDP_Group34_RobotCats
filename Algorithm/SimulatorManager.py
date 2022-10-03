@@ -9,15 +9,16 @@ from obstacle import *
 from robot import *
 from route import *
 from shortest_path import *
-from actions import *
 from SimulatorGUI import *
 from SimulatorGrid import *
 from time import perf_counter
 
-TEST_OBSTACLES = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'],
-                  [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+# TEST_OBSTACLES = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'],
+#                   [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+# TEST_OBSTACLES = [[3, 4, 'W']]
+TEST_OBSTACLES = [[0, 4, 'S'], [10, 7, 'W'], [5, 19, 'E']]
 
-class SimulatorManager():
+class SimulatorManager:
     def __init__(self, result_app):
 
         self.robot = None
@@ -72,6 +73,7 @@ class SimulatorManager():
         start_time = perf_counter()
 
         sp.get_shortest_path()
+        # print(f"sp.route = {sp.route}")
         car = self.algo_grid.robot
         self.console_writeline("Initial direction robot is facing is: " + str(self.robot.direction))
         move_counter = 1
@@ -81,7 +83,6 @@ class SimulatorManager():
         self.timer = perf_counter()
         print(f"\nTo STM: {get_stm_commands(sp.route)}\n")
 
-
         for curr_route in sp.route:
             self.console_writeline(f"Route {route_counter} to {curr_route.position}")
             self.console_writeline(f"Moves: {curr_route.route}")
@@ -89,19 +90,20 @@ class SimulatorManager():
             for move in curr_route.route:
                 self.console_writeline(f"Move {move_counter} is {move}")
                 if move == 'F' or move == 'B':
-                    car.algo_move(move)
+                    car.move(move)
                 elif move == 'L' or move == 'R':
-                    car.algo_turn(move)
+                    car.turn(move)
+                elif move == 'IL' or move == 'IR':
+                    car.in_place(move)
 
                 self.set_robot()
                 self.redraw()
-                sleep(0.5)
+                time.sleep(0.5)
                 move_counter += 1
 
-            # TODO: Mark obstacle as visited only when image is recognised successfully
             # TODO: If obstacle cannot be reached, add route to it at the end of sp.route to try again at the end
             self.console_writeline("Recognizing image...")
-            sleep(2)  # Capture image
+            time.sleep(2)  # Capture image
             self.mark_visited(curr_route.position)
             dist_travelled += curr_route.distance
             self.console_writeline(f"Distance travelled = {dist_travelled}")
@@ -129,7 +131,6 @@ class SimulatorManager():
     def console_clear(self):
         self.console = ""
         dpg.set_value("console_body", self.console)
-
 
     def redraw(self):
         # set all colours to white
