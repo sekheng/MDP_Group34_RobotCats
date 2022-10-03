@@ -192,7 +192,7 @@ class ShortestPath:
                 if (tuple(start), tuple(goal)) not in cache:
 
                     if self.aStar(start, goal) is None:
-                        # print("No path found for", start, "to", goal)
+                        print("No path found for", start, "to", goal)
                         possible = False
                         break
 

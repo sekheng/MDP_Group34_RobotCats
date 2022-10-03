@@ -16,7 +16,7 @@ from time import perf_counter
 # TEST_OBSTACLES = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'],
 #                   [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
 # TEST_OBSTACLES = [[3, 4, 'W']]
-TEST_OBSTACLES = [[0, 3, 'S']]
+TEST_OBSTACLES = [[0, 4, 'S'], [10, 7, 'W'], [5, 19, 'E']]
 
 class SimulatorManager:
     def __init__(self, result_app):
@@ -73,6 +73,7 @@ class SimulatorManager:
         start_time = perf_counter()
 
         sp.get_shortest_path()
+        # print(f"sp.route = {sp.route}")
         car = self.algo_grid.robot
         self.console_writeline("Initial direction robot is facing is: " + str(self.robot.direction))
         move_counter = 1

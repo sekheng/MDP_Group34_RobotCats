@@ -65,14 +65,16 @@ class Obstacle:
             v_col -= optimal_dist
             v_dir = 2
 
-        if v_col >= num_cols - 1 or v_col <= 0 or v_row >= num_rows - 1 or v_row <= 0:
+        print(f"v_col = {v_col}, v_row = {v_row}")
+
+        if v_col > num_cols - 1 or v_col < 0 or v_row > num_rows - 1 or v_row < 0:
             v_row, v_col = float("-inf"), float("-inf")  # -inf for images that cannot be seen
                                                          # as car will exceed arena boundary
         if v_col == 0:
             v_col += 1
         elif v_col == 19:
             v_col -= 1
-        elif v_row == 0 :
+        elif v_row == 0:
             v_row += 1
         elif v_row == 19:
             v_row -= 1
