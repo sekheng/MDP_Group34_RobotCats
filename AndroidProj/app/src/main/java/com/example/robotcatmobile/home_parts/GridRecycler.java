@@ -582,7 +582,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 mGridButton.setOnLongClickListener(null);
                 setObstacleDirection(Direction.NONE);
                 mGridButton.setTextColor(itemView.getResources().getColor(R.color.black));
-                setObstacleImage(String.format("%s,%s", mX, mY));
+                int yIndex = -(mY - GridRecycler.COLUMNS + 1);
+                setObstacleImage(String.format("%s,%s", mX, yIndex));
             }
         }
     }
