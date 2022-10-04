@@ -86,7 +86,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     // the shadow
     View.DragShadowBuilder mMyShadow;
     // string of all possible images!
-    String[] mAllObstacleSymbols = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "Up","Down","Left","Right","Stop","bullseye","A", "B", "C", "D","E","F","G","H","V","W","X","Y","Z","S","T","U"};
+    String[] mAllObstacleSymbols = {"1", "2", "3", "4", "5", "6", "7", "8", "9","A", "B", "C", "D","E","F","G","H", "S","T","U","V","W","X","Y","Z","Up","Down","Left","Right","Stop"};
     // to type being send to here
     BroadcastReceiver mTypeBR = new BroadcastReceiver() {
         @Override
@@ -312,15 +312,12 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
         // direction that the obstacle is facing
         // NONE as default
         Direction mDirection = Direction.NONE;
-        // set the number which the obstacle is displaying
-        AppCompatImageView mMainImage;
         // the symbol of this obstacle!
         String mObstacleSymbol = "";
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             mGridButton = itemView.findViewById(R.id.grid_button);
-            mMainImage = itemView.findViewById(R.id.grid_symbol);
             mGridButton.setOnClickListener(view -> {
                 switch (curInteractState) {
                     case ROBOT:
@@ -506,32 +503,16 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
         // the obstacle to be set!
         public void setObstacleImage(String obstacleLook) {
             mGridButton.setText("");
-            mMainImage.setVisibility(View.VISIBLE);
-            //"up","down","left","right","circle","square"
-            // we will need to know whether it is a circle or not
-            // HARDCODE
-            if (obstacleLook.equalsIgnoreCase("Circle") || obstacleLook.equalsIgnoreCase("Stop")) {
-                // make sure the text is empty
-                mMainImage.setImageResource(R.drawable.circle);
+            boolean isInArray = false;
+            for (int num = 0; num < mAllObstacleSymbols.length; ++num) {
+                if (obstacleLook.equalsIgnoreCase(mAllObstacleSymbols[num])) {
+                    isInArray = true;
+                    mGridButton.setText(String.valueOf(num + 11));
+                    break;
+                }
             }
-            else if (obstacleLook.equalsIgnoreCase("Up")) {
-                mMainImage.setImageResource(R.drawable.up_arrow);
-            }
-            else if (obstacleLook.equalsIgnoreCase("Down")) {
-                mMainImage.setImageResource(R.drawable.down_arrow);
-            }
-            else if (obstacleLook.equalsIgnoreCase("Left")) {
-                mMainImage.setImageResource(R.drawable.left_arrow);
-            }
-            else if (obstacleLook.equalsIgnoreCase("Right")) {
-                mMainImage.setImageResource(R.drawable.right_arrow);
-            }
-            else if (obstacleLook.equalsIgnoreCase("square") || obstacleLook.equalsIgnoreCase("Bullseye")) {
-                mMainImage.setImageResource(R.drawable.square_square);
-            }
-            else
+            if (!isInArray)
             {
-                mMainImage.setVisibility(View.INVISIBLE);
                 mGridButton.setText(obstacleLook);
             }
             mObstacleSymbol = obstacleLook;

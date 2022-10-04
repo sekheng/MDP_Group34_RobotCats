@@ -3,6 +3,8 @@ package com.example.robotcatmobile;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.annotation.SuppressLint;
@@ -51,6 +53,9 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         }
     };
 
+    final String HOME_FRAG_TAG = "HOME";
+    final String BT_FRAG_TAG = "BT";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +64,10 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
         // the bottom navigation
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottomNavigationView);
         bottomNavigationView.setOnItemSelectedListener(this);
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.add(R.id.flFragment,homeFragment,HOME_FRAG_TAG);
+        ft.add(R.id.flFragment,bluetoothFrag,BT_FRAG_TAG);
+        ft.commitNow();
         bottomNavigationView.setSelectedItemId(R.id.home_tab);
         IntentFilter connectionStatusIntent = new IntentFilter(BluetoothConn.CONNECTION_STATUS);
         LocalBroadcastManager.getInstance(getApplicationContext()).registerReceiver(mDisconnBR, connectionStatusIntent);
@@ -79,15 +88,19 @@ public class MainActivity extends AppCompatActivity implements NavigationBarView
          */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
         switch (item.getItemId()) {
             case R.id.home_tab:
-                getSupportFragmentManager().beginTransaction().replace(R.id.flFragment, homeFragment).commit();
-                return true;
+                ft.show(getSupportFragmentManager().findFragmentByTag(HOME_FRAG_TAG));
+                ft.hide(getSupportFragmentManager().findFragmentByTag(BT_FRAG_TAG));
+                break;
             case R.id.bluetooth_tab:
-                getSupportFragmentManager().beginTransaction().replace(R.id.flFragment, bluetoothFrag).commit();
-                return true;
+                ft.show(getSupportFragmentManager().findFragmentByTag(BT_FRAG_TAG));
+                ft.hide(getSupportFragmentManager().findFragmentByTag(HOME_FRAG_TAG));
+                break;
         }
-        return false;
+        ft.commit();
+        return true;
     }
 
     private final BroadcastReceiver mDisconnBR = new BroadcastReceiver() {

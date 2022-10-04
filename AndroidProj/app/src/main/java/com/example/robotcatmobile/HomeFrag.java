@@ -119,7 +119,6 @@ public class HomeFrag extends Fragment {
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
