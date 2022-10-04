@@ -154,8 +154,10 @@ class AlgoServer:
                             print(f"Updated robot position = {new_pos} has been sent")
 
                         elif reply == 'P':
+                            reply = 'P ' + json.dumps(self.get_obstacle_info())
                             print('reply is ' + str(reply))
                             conn.sendall(reply.encode('utf-8'))
+                            #obstacle_info = self.get_obstacle_info()
 
                         print("Data has been sent!")
 
@@ -168,6 +170,29 @@ class AlgoServer:
                     conn.sendall(reply.encode('utf-8'))
                     print("Data has been sent!")
         conn.close()
+
+    def get_obstacle_info(self):
+        robot_direction = self.get_robot_direction()
+        robot_position_col, robot_position_row = self.algo_robot.get_col(), self.algo_robot.get_row()
+        if robot_direction == 'NORTH':
+            obstacle_col = robot_position_col
+            obstacle_row = robot_position_row - 2
+            obstacle_direction = 'SOUTH'
+        elif robot_direction == 'EAST':
+            obstacle_direction = 'WEST'
+            obstacle_col = robot_position_col + 2
+            obstacle_row = robot_position_row
+        elif robot_direction == 'SOUTH':
+            obstacle_direction = 'NORTH'
+            obstacle_col = robot_position_col
+            obstacle_row = robot_position_row + 2
+        elif robot_direction == 'WEST':
+            obstacle_direction = 'EAST'
+            obstacle_col = robot_position_col - 2
+            obstacle_row = robot_position_row
+        return {"type":"obstacle","direction":obstacle_direction,"symbol":"square","x":str(obstacle_col),"y":str(obstacle_row),"fontsize":"12"}
+
+
 
     def get_robot_direction(self):
         direction = self.algo_robot.direction
