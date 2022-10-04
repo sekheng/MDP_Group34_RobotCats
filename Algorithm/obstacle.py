@@ -39,12 +39,12 @@ class Obstacle:
         matrix[self.row][self.col] = self.direction
 
         # demarcate boundaries around obstacle (10cm)
-        for i in range(self.row-1, self.row+2):
-            for j in range(self.col-1, self.col+2):
-                if (matrix[i][j] != 0):
-                    continue
-                else:
-                    matrix[i][j] = 'X'  # invalid if center of car has to traverse these cells
+        # for i in range(self.row-1, self.row+2):
+        #     for j in range(self.col-1, self.col+2):
+        #         if (matrix[i][j] != 0):
+        #             continue
+        #         else:
+        #             matrix[i][j] = 'X'  # invalid if center of car has to traverse these cells
 
         return matrix
     def set_viewpos(self, num_cols, num_rows):

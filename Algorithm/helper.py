@@ -65,6 +65,10 @@ def get_stm_commands(route_list: list[Route]):
                     stm_route.append(f"a{90:03d}")
                 elif route[i] == 'IR':
                     stm_route.append(f"d{90:03d}")
+                elif route[i] == 'BL':
+                    stm_route.append(f"z{90:03d}")
+                elif route[i] == 'BR':
+                    stm_route.append(f"c{90:03d}")
                 count = 1
             #stm_route.append('WAIT 10SECONDS')
     return stm_route

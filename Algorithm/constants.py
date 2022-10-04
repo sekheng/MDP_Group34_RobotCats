@@ -10,7 +10,7 @@ AREA_LENGTH = 200
 # robot
 CAR_WIDTH = 30
 CAR_LENGTH = 30
-VIEW_DIST = 30
+VIEW_DIST = 40
 # TURN_DIST = 30
 # TURN_GRIDS = math.ceil(TURN_DIST/CELL_SIZE)
 DISP = 10 // CELL_SIZE  # In-place displacement
@@ -20,7 +20,7 @@ DISP = 10 // CELL_SIZE  # In-place displacement
 # N = 0, E = 1, S = 2, W = 3
 
 # moves
-MOVES = ['F', 'L', 'R', 'B', 'IL', 'IR']
+MOVES = ['F', 'L', 'R', 'B', 'IL', 'IR', 'BL', 'BR']
 
 # obstacles markings
 OBS_MARKINGS = {'N', 'S', 'E', 'W'}
