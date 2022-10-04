@@ -10,7 +10,7 @@ import constants
 
 class AlgoServer:
     def __init__(self):
-        self.host = '192.168.34.22'
+        self.host = '192.168.34.11'
         self.port = 8080
         self.input_obstacles = []
         # self.algo_obstacles_dict = {}
@@ -58,6 +58,7 @@ class AlgoServer:
 
         if algo_path.route is not None and len(algo_path.route) != 0:
             self.command_list = get_stm_commands(algo_path.route)
+            self.command_list.append('DONE')
             # self.command_list.insert(0, 'P')  # when we need to bulldoze first obstacle
             print(f"command_list = {self.command_list}")
         else:
