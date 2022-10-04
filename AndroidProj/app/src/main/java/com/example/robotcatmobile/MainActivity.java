@@ -1,6 +1,7 @@
 package com.example.robotcatmobile;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
@@ -12,6 +13,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -22,6 +24,7 @@ import com.example.robotcatmobile.bluetooth_parts.BluetoothConn;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+@RequiresApi(api = Build.VERSION_CODES.N)
 public class MainActivity extends AppCompatActivity implements NavigationBarView.OnItemSelectedListener {
     HomeFrag homeFragment = new HomeFrag();
     BluetoothFrag bluetoothFrag = new BluetoothFrag();

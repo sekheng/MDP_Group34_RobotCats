@@ -86,7 +86,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     // the shadow
     View.DragShadowBuilder mMyShadow;
     // string of all possible images!
-    String[] mAllObstacleSymbols = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "up","down","left","right","circle","square","V","W","X","Y","Z","E","F","G","H","S","T","U"};
+    String[] mAllObstacleSymbols = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "Up","Down","Left","Right","Stop","bullseye","A", "B", "C", "D","E","F","G","H","V","W","X","Y","Z","S","T","U"};
     // to type being send to here
     BroadcastReceiver mTypeBR = new BroadcastReceiver() {
         @Override
@@ -510,23 +510,23 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
             //"up","down","left","right","circle","square"
             // we will need to know whether it is a circle or not
             // HARDCODE
-            if (obstacleLook.equalsIgnoreCase("circle")) {
+            if (obstacleLook.equalsIgnoreCase("Circle") || obstacleLook.equalsIgnoreCase("Stop")) {
                 // make sure the text is empty
                 mMainImage.setImageResource(R.drawable.circle);
             }
-            else if (obstacleLook.equalsIgnoreCase("up")) {
+            else if (obstacleLook.equalsIgnoreCase("Up")) {
                 mMainImage.setImageResource(R.drawable.up_arrow);
             }
-            else if (obstacleLook.equalsIgnoreCase("down")) {
+            else if (obstacleLook.equalsIgnoreCase("Down")) {
                 mMainImage.setImageResource(R.drawable.down_arrow);
             }
-            else if (obstacleLook.equalsIgnoreCase("left")) {
+            else if (obstacleLook.equalsIgnoreCase("Left")) {
                 mMainImage.setImageResource(R.drawable.left_arrow);
             }
-            else if (obstacleLook.equalsIgnoreCase("right")) {
+            else if (obstacleLook.equalsIgnoreCase("Right")) {
                 mMainImage.setImageResource(R.drawable.right_arrow);
             }
-            else if (obstacleLook.equalsIgnoreCase("square")) {
+            else if (obstacleLook.equalsIgnoreCase("square") || obstacleLook.equalsIgnoreCase("Bullseye")) {
                 mMainImage.setImageResource(R.drawable.square_square);
             }
             else
