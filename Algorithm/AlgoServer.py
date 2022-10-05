@@ -6,6 +6,7 @@ from obstacle import *
 from robot import *
 from shortest_path import *
 import constants
+import transfer
 
 
 class AlgoServer:
@@ -148,6 +149,9 @@ class AlgoServer:
                             new_pos = json.dumps(robot_pos_json)
                             conn.sendall(new_pos.encode('utf-8'))
                             print(f"Updated robot position = {new_pos} has been sent")
+
+                            if reply == 'DONE':
+                                transfer.get_image_results()
 
                         elif reply == 'P':
                             reply = 'P ' + json.dumps(self.get_info())
