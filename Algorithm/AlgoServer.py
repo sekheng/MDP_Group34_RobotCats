@@ -99,7 +99,7 @@ class AlgoServer:
                         reply = self.command_list[0]
 
                         if reply == 'P':
-                            reply = 'P ' + json.dumps(self.get_obstacle_info())
+                            reply = 'P ' + json.dumps(self.get_info())
                             print('reply is ' + str(reply))
                             conn.sendall(reply.encode('utf-8'))
 
@@ -150,7 +150,7 @@ class AlgoServer:
                             print(f"Updated robot position = {new_pos} has been sent")
 
                         elif reply == 'P':
-                            reply = 'P ' + json.dumps(self.get_obstacle_info())
+                            reply = 'P ' + json.dumps(self.get_info())
                             print('reply is ' + str(reply))
                             conn.sendall(reply.encode('utf-8'))
                             #obstacle_info = self.get_obstacle_info()
@@ -167,26 +167,34 @@ class AlgoServer:
                     print("Data has been sent!")
         conn.close()
 
-    def get_obstacle_info(self):
-        robot_direction = self.get_robot_direction()
-        robot_position_col, robot_position_row = self.algo_robot.get_col(), self.algo_robot.get_row()
-        if robot_direction == 'NORTH':
-            obstacle_col = robot_position_col
-            obstacle_row = robot_position_row - 4
-            obstacle_direction = 'SOUTH'
-        elif robot_direction == 'EAST':
-            obstacle_direction = 'WEST'
-            obstacle_col = robot_position_col + 4
-            obstacle_row = robot_position_row
-        elif robot_direction == 'SOUTH':
-            obstacle_direction = 'NORTH'
-            obstacle_col = robot_position_col
-            obstacle_row = robot_position_row + 4
-        elif robot_direction == 'WEST':
-            obstacle_direction = 'EAST'
-            obstacle_col = robot_position_col - 4
-            obstacle_row = robot_position_row
-        return {"type":"obstacle","direction":obstacle_direction,"symbol":"square","x":str(obstacle_col),"y":str(obstacle_row),"fontsize":"12"}
+    def get_info(self):
+        obstacles = self.algo_obstacles
+        row = self.algo_robot.get_row()
+        col = self.algo_robot.get_col()
+        for o in obstacles:
+            if o.viewpos[0] == row and o.viewpos[1] == col:
+                return {"type":"obstacle","direction":o.direction,"symbol":"square","x":str(o.col),"y":str(o.row),"fontsize":"12"}
+
+    # def get_obstacle_info(self):
+    #     robot_direction = self.get_robot_direction()
+    #     robot_position_col, robot_position_row = self.algo_robot.get_col(), self.algo_robot.get_row()
+    #     if robot_direction == 'NORTH':
+    #         obstacle_col = robot_position_col
+    #         obstacle_row = robot_position_row - 4
+    #         obstacle_direction = 'SOUTH'
+    #     elif robot_direction == 'EAST':
+    #         obstacle_direction = 'WEST'
+    #         obstacle_col = robot_position_col + 4
+    #         obstacle_row = robot_position_row
+    #     elif robot_direction == 'SOUTH':
+    #         obstacle_direction = 'NORTH'
+    #         obstacle_col = robot_position_col
+    #         obstacle_row = robot_position_row + 4
+    #     elif robot_direction == 'WEST':
+    #         obstacle_direction = 'EAST'
+    #         obstacle_col = robot_position_col - 4
+    #         obstacle_row = robot_position_row
+    #     return {"type":"obstacle","direction":obstacle_direction,"symbol":"square","x":str(obstacle_col),"y":str(obstacle_row),"fontsize":"12"}
 
     def get_robot_direction(self):
         direction = self.algo_robot.direction
