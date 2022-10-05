@@ -97,30 +97,25 @@ class AlgoServer:
 
                     if self.command_list or self.command_list is not None:
                         reply = self.command_list[0]
-                        self.update_robot_pos(reply)
-                        # Send the reply back to the client
-                        print('reply is ' + str(reply))
-                        conn.sendall(reply.encode('utf-8'))
-                        print("Move has been sent!")
 
-                        # dir = 'NORTH'
-                        # if self.get_robot_direction() is None:
-                        #     print("robot direction is none")
-                        #
-                        # if self.get_robot_direction() == 1:
-                        #     dir = 'NORTH'
-                        # elif self.get_robot_direction() == 2:
-                        #     dir = 'EAST'
-                        # elif self.get_robot_direction() == 3:
-                        #     dir = 'SOUTH'
-                        # elif self.get_robot_direction() == 4:
-                        #     dir = 'WEST'
+                        if reply == 'P':
+                            reply = 'P ' + json.dumps(self.get_obstacle_info())
+                            print('reply is ' + str(reply))
+                            conn.sendall(reply.encode('utf-8'))
 
-                        robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
-                                          "y": str(self.algo_robot.get_row()), "direction": str(self.get_robot_direction())}
-                        reply = json.dumps(robot_pos_json)
-                        conn.sendall(reply.encode('utf-8'))
-                        print(f"Updated robot position = {reply} has been sent")
+                        else:
+
+                            self.update_robot_pos(reply)
+                            # Send the reply back to the client
+                            print('reply is ' + str(reply))
+                            conn.sendall(reply.encode('utf-8'))
+                            print("Move has been sent!")
+
+                            robot_pos_json = {"type": "robot", "x": str(self.algo_robot.get_col()),
+                                              "y": str(self.algo_robot.get_row()), "direction": str(self.get_robot_direction())}
+                            reply = json.dumps(robot_pos_json)
+                            conn.sendall(reply.encode('utf-8'))
+                            print(f"Updated robot position = {reply} has been sent")
                     else:
                         conn.sendall("No path found".encode('utf-8'))
 
@@ -177,23 +172,21 @@ class AlgoServer:
         robot_position_col, robot_position_row = self.algo_robot.get_col(), self.algo_robot.get_row()
         if robot_direction == 'NORTH':
             obstacle_col = robot_position_col
-            obstacle_row = robot_position_row - 2
+            obstacle_row = robot_position_row - 4
             obstacle_direction = 'SOUTH'
         elif robot_direction == 'EAST':
             obstacle_direction = 'WEST'
-            obstacle_col = robot_position_col + 2
+            obstacle_col = robot_position_col + 4
             obstacle_row = robot_position_row
         elif robot_direction == 'SOUTH':
             obstacle_direction = 'NORTH'
             obstacle_col = robot_position_col
-            obstacle_row = robot_position_row + 2
+            obstacle_row = robot_position_row + 4
         elif robot_direction == 'WEST':
             obstacle_direction = 'EAST'
-            obstacle_col = robot_position_col - 2
+            obstacle_col = robot_position_col - 4
             obstacle_row = robot_position_row
         return {"type":"obstacle","direction":obstacle_direction,"symbol":"square","x":str(obstacle_col),"y":str(obstacle_row),"fontsize":"12"}
-
-
 
     def get_robot_direction(self):
         direction = self.algo_robot.direction

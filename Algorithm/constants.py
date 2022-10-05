@@ -20,7 +20,7 @@ DISP = 10 // CELL_SIZE  # In-place displacement
 # N = 0, E = 1, S = 2, W = 3
 
 # moves
-MOVES = ['F', 'L', 'R', 'B', 'IL', 'IR', 'BL', 'BR']
+MOVES = ['F', 'L', 'R', 'B', 'IL', 'IR']
 
 # obstacles markings
 OBS_MARKINGS = {'N', 'S', 'E', 'W'}
