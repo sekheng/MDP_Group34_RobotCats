@@ -33,6 +33,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -87,6 +88,9 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
     View.DragShadowBuilder mMyShadow;
     // string of all possible images!
     String[] mAllObstacleSymbols = {"1", "2", "3", "4", "5", "6", "7", "8", "9","A", "B", "C", "D","E","F","G","H", "S","T","U","V","W","X","Y","Z","Up","Down","Left","Right","Stop"};
+
+    public ArrayList<ViewHolder> mAllObstacleList = new ArrayList<>();
+
     // to type being send to here
     BroadcastReceiver mTypeBR = new BroadcastReceiver() {
         @Override
@@ -311,9 +315,9 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
         boolean mIsObstacle = false;
         // direction that the obstacle is facing
         // NONE as default
-        Direction mDirection = Direction.NONE;
+        public Direction mDirection = Direction.NONE;
         // the symbol of this obstacle!
-        String mObstacleSymbol = "";
+        public String mObstacleSymbol = "";
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -523,6 +527,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                                   String imageStr,
                                   Direction direction) {
             // just for the grid button to send the obstacle over
+            /*
             JSONObject jsonObject = new JSONObject();
             try {
                 if (isObstacle) {
@@ -542,6 +547,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+             */
             setObstacle(isObstacle);
             if (isObstacle == true)
                 setObstacleImage(imageStr);
@@ -556,6 +562,8 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 mGridButton.setBackground(ContextCompat.getDrawable(mGridButton.getContext(), R.drawable.obstacle_design));
                 mGridButton.setOnLongClickListener(mOnLongClickListener);
                 mGridButton.setTextColor(itemView.getResources().getColor(R.color.colorAccent));
+                if (!mAllObstacleList.contains(this))
+                    mAllObstacleList.add(this);
             }
                 // we can also toggle between clear space and obstacle!
             else {
@@ -565,6 +573,7 @@ public class GridRecycler extends RecyclerView.Adapter<GridRecycler.ViewHolder> 
                 mGridButton.setTextColor(itemView.getResources().getColor(R.color.black));
                 int yIndex = -(mY - GridRecycler.COLUMNS + 1);
                 setObstacleImage(String.format("%s,%s", mX, yIndex));
+                mAllObstacleList.remove(this);
             }
         }
     }

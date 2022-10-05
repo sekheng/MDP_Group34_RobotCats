@@ -29,9 +29,11 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.example.robotcatmobile.bluetooth_parts.BluetoothConn;
+import com.example.robotcatmobile.home_parts.Direction;
 import com.example.robotcatmobile.home_parts.GridRecycler;
 import com.example.robotcatmobile.home_parts.SET_GRID_STATE;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -100,6 +102,8 @@ public class HomeFrag extends Fragment {
     Handler mStopWatchThread;
     // boolean flags to know whether it runs
     boolean mIsFastest = false;
+    // SEND all obstacles in one press
+    AppCompatButton mSendAllObsBtn;
 
     public HomeFrag() {
         // Required empty public constructor
@@ -234,6 +238,34 @@ public class HomeFrag extends Fragment {
             }
         });
         mFastestText = view.findViewById(R.id.fastest_text);
+
+        mSendAllObsBtn = view.findViewById(R.id.send_all_obs_btn);
+        mSendAllObsBtn.setOnClickListener(view1 -> {
+            // then send all the obstacles from the grid recycler to the JSON array then bluetooth
+            JSONArray jArray = new JSONArray();
+            for (int num = 0; num < gridRecycler.mAllObstacleList.size(); ++num) {
+                try {
+                    // get the JSON object, then set it in the array
+                    GridRecycler.ViewHolder gridObs = gridRecycler.mAllObstacleList.get(num);
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put(BluetoothConn.SENDING_TYPE, GridRecycler.OBSTACLE_VALUE);
+                    jsonObject.put(GridRecycler.X_KEY,gridObs.mX);
+                    jsonObject.put(GridRecycler.Y_KEY,gridObs.mY);
+                    if (gridObs.mDirection != Direction.NONE) {
+                        jsonObject.put(GridRecycler.DIRECTION_KEY,gridObs.mDirection.toString());
+                    }
+                    if (!gridObs.mObstacleSymbol.isEmpty()) {
+                        jsonObject.put(GridRecycler.SYMBOL_KEY, gridObs.mObstacleSymbol);
+                    }
+                    jArray.put(jsonObject);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            String jArrayStr = jArray.toString();
+            BluetoothConn.write(jArrayStr.getBytes(StandardCharsets.UTF_8));
+        });
     }
 
     void stopTimeBluetooth() {
