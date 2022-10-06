@@ -59,9 +59,9 @@ class Robot:
 
     def check_valid_move(self, new_pos):
         if new_pos[0] >= 0:
-            if new_pos[0] < 40:
+            if new_pos[0] < 20:
                 if new_pos[1] >= 0:
-                    if new_pos[1] < 40:
+                    if new_pos[1] < 20:
                         return True
         else:
             return False

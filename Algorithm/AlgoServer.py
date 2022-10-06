@@ -127,8 +127,10 @@ class AlgoServer:
                     print('reply is ' + str(reply))
                     conn.sendall(reply.encode('utf-8'))
                     print("Data has been sent!")
-                elif command == 'EXIT':
+                elif command == '"EXIT"':
                     print("Our client has left us :(")
+                    print("Downloading image...")
+                    transfer.get_image_results()
                     break
                 elif command == 'KILL':
                     print("Our server is shutting down.")

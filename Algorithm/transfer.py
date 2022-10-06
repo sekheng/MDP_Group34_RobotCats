@@ -34,7 +34,7 @@ def get_image_results():
 
     print("\n Connected to RPI\n")
 
-    filename = f"results_{datetime.now()}.jpg"
+    filename = "results.jpg"
     remotepath = rpiImageDirectory + "/" + filename
     #rename the image files
     localFilePath = os.path.join(imageDirectory, filename + "-temporary")
@@ -45,3 +45,4 @@ def get_image_results():
     backupFilePath = os.path.join(backupDirectory, filename)
     shutil.copy2(newLocalFilePath, backupFilePath)
     print("done!")
+
