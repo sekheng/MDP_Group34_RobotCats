@@ -19,8 +19,9 @@ from time import perf_counter
 # TEST_OBSTACLES = [[5, 0, 'N'], [5, 19, 'E']]
 # TEST_OBSTACLES = [[4, 12, 'E'], [10, 12, 'W'], [19, 19, 'W']]
 # [1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E'],
-TEST_OBSTACLES = [[1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E']]
-
+# TEST_OBSTACLES = [[1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E']]
+# TEST_OBSTACLES = [[1, 18, 'S'], [6, 12, 'S'], [10, 7, 'E'], [16, 5, 'W'], [15, 16, 'W'], [18, 18, 'S']]
+TEST_OBSTACLES = [[10,10, 'E'], [16,10,'W']]
 class SimulatorManager:
     def __init__(self, result_app):
 
@@ -101,7 +102,7 @@ class SimulatorManager:
 
                 self.set_robot()
                 self.redraw()
-                time.sleep(1.5)
+                time.sleep(0.5)
                 move_counter += 1
 
             # TODO: If obstacle cannot be reached, add route to it at the end of sp.route to try again at the end
