@@ -101,7 +101,7 @@ class SimulatorManager:
 
                 self.set_robot()
                 self.redraw()
-                time.sleep(1.5)
+                time.sleep(0.5)
                 move_counter += 1
 
             # TODO: If obstacle cannot be reached, add route to it at the end of sp.route to try again at the end

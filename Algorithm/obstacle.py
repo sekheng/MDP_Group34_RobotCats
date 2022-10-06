@@ -33,20 +33,21 @@ class Obstacle:
     def set_direction(self, direction):
         self.direction = direction
 
-    def mark(self, matrix):
+    def mark(self, matrix, num_cols, num_rows):
 
         # draw obstacle itself
         matrix[self.row][self.col] = self.direction
 
         # demarcate boundaries around obstacle (10cm)
-        # for i in range(self.row-1, self.row+2):
-        #     for j in range(self.col-1, self.col+2):
-        #         if (matrix[i][j] != 0):
-        #             continue
-        #         else:
-        #             matrix[i][j] = 'X'  # invalid if center of car has to traverse these cells
+        for i in range(self.row-1, self.row+2):
+            for j in range(self.col-1, self.col+2):
+                if not (0 <= i < num_rows) or not (0 <= j < num_cols) or matrix[i][j] != 0:
+                    continue
+                else:
+                    matrix[i][j] = 'X'  # invalid if center of car has to traverse these cells
 
         return matrix
+
     def set_viewpos(self, num_cols, num_rows):
         # set the position where car should stop to view image
         optimal_dist = math.ceil(VIEW_DIST/CELL_SIZE)  # min number of cells between car center and image
