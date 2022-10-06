@@ -41,10 +41,7 @@ class Grid:
         return self.matrix[x][y] in OBS_MARKINGS  # obstacles and their boundaries are N S E W
 
     def pos_is_valid(self, x, y):
-        return 0 <= x <= self.num_rows - 1 and 0 <= y <= self.num_cols - 1 and not \
-            (self.pos_is_obstacle(x-1, y-1) or self.pos_is_obstacle(x, y-1) or self.pos_is_obstacle(x+1, y-1) or
-             self.pos_is_obstacle(x-1, y) or self.pos_is_obstacle(x, y) or self.pos_is_obstacle(x+1, y) or
-             self.pos_is_obstacle(x-1, y+1) or self.pos_is_obstacle(x, y+1) or self.pos_is_obstacle(x+1, y+1))
+        return 0 <= x <= self.num_rows - 1 and 0 <= y <= self.num_cols - 1 and not self.pos_is_obstacle(x, y)
 
     def robot_pos_is_valid(self, robot_centre):
         x_c, y_c, _ = robot_centre

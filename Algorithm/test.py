@@ -55,7 +55,7 @@ if __name__ == "__main__":
     # test_server = AlgoServer()
     # test_obstacle_conversion(test_server)
 
-    test_obstacles = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'], [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
+    test_obstacles = [[1, 18, 'S'], [6, 12, 'S'], [10, 7, 'N'], [15, 16, 'W'], [18, 18, 'S'], [16, 5, 'W']]
     for idx, o in enumerate(test_obstacles):
         row, col, dir = to_indices(o)
         test_obstacles[idx] = Obstacle(row, col, dir)
