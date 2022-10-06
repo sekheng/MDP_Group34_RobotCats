@@ -320,10 +320,10 @@ class ShortestPath:
                 child = self.get_child(curr, move)
 
                 if move in ['R', 'L', 'BL', 'BR']:
-                    child.g = 15
+                    child.g = 30
 
                 elif move in ['IL', 'IR']:
-                    child.g = 30
+                    child.g = 50
 
                 if not self.is_move_valid(curr.pos, child.pos, move):
                     continue

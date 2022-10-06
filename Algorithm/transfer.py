@@ -13,7 +13,7 @@ def get_image_results():
     rpiPassword = "raspberry34"
 
     rpiImageDirectory = "./Desktop/rpi/images"
-    imageDirectory = "C:/Users/cheyj/Desktop"
+    imageDirectory = "C:/Users/user/Desktop"
     results_dir = "resultsFolder"
     backupDirectory = "backupImageFolder"
 

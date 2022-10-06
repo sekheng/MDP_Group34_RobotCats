@@ -16,10 +16,10 @@ from time import perf_counter
 # TEST_OBSTACLES = [[2, 15, 'S'], [6, 13, 'E'], [10, 17, 'S'], [15, 7, 'W'],
 #                   [18, 18, 'S'], [8, 2, 'N'], [13, 9, 'N'], [18, 6, 'N']]
 # TEST_OBSTACLES = [[3, 4, 'W']]
-TEST_OBSTACLES = [[5, 0, 'N'], [5, 19, 'E']]
+# TEST_OBSTACLES = [[5, 0, 'N'], [5, 19, 'E']]
 # TEST_OBSTACLES = [[4, 12, 'E'], [10, 12, 'W'], [19, 19, 'W']]
 # [1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E'],
-# TEST_OBSTACLES = [[1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E']]
+TEST_OBSTACLES = [[1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E']]
 
 class SimulatorManager:
     def __init__(self, result_app):

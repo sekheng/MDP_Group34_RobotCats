@@ -81,9 +81,10 @@ class AlgoServer:
             data = conn.recv(1024)  # receive the data
             data = data.decode('utf-8')
             try:
-                parsed_data = json.loads(data)
-                self.android_to_algo(parsed_data)
-                print('added obstacle: ', parsed_data)
+                parsed_data_list = json.loads(data)
+                for parsed_data in parsed_data_list:
+                    self.android_to_algo(parsed_data)
+                    print('added obstacle: ', parsed_data)
             except:
                 print('data is not a json string')
                 print('data is ' + str(data))
