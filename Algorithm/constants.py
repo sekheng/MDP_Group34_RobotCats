@@ -23,7 +23,7 @@ DISP = 10 // CELL_SIZE  # In-place displacement
 MOVES = ['F', 'L', 'R', 'B', 'IL', 'IR']
 
 # obstacles markings
-OBS_MARKINGS = {'N', 'S', 'E', 'W', 'X'}
+OBS_MARKINGS = {'N', 'S', 'E', 'W'}
 
 # colors
 IMAGE_COL = [100,149,237]
