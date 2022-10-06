@@ -19,7 +19,9 @@ from time import perf_counter
 # TEST_OBSTACLES = [[5, 0, 'N'], [5, 19, 'E']]
 # TEST_OBSTACLES = [[4, 12, 'E'], [10, 12, 'W'], [19, 19, 'W']]
 # [1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E'],
-TEST_OBSTACLES = [[1, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E']]
+# TEST_OBSTACLES = [[0, 18, 'S'], [6, 12, 'N'], [10, 7, 'E'], [15, 16, 'W'], [19, 9, 'W'], [13, 2, 'E']]
+
+TEST_OBSTACLES = [10,10,'E'],[15,10,'W'], [0, 18, 'S']
 
 class SimulatorManager:
     def __init__(self, result_app):

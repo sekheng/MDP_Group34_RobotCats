@@ -10,7 +10,7 @@ AREA_LENGTH = 200
 # robot
 CAR_WIDTH = 30
 CAR_LENGTH = 30
-VIEW_DIST = 50
+VIEW_DIST = 30
 # TURN_DIST = 30
 # TURN_GRIDS = math.ceil(TURN_DIST/CELL_SIZE)
 DISP = 10 // CELL_SIZE  # In-place displacement

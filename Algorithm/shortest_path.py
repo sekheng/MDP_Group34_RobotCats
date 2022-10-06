@@ -203,6 +203,7 @@ class ShortestPath:
         print("Viewing positions:", viewing_pos)
         candidate_routes = list(itertools.permutations(viewing_pos))  # get all path permutations
         chosen_route = (float('inf'), None)  # total distance, path
+        backup = None
 
         for i, route in enumerate(candidate_routes):
             # if i == 2:
@@ -221,6 +222,7 @@ class ShortestPath:
                     return
 
                 if total_dist > chosen_route[0]:
+                    print("total_dist too large")
                     possible = False
                     break
 
@@ -254,7 +256,10 @@ class ShortestPath:
                 prev = goal
 
                 if pt_to_pt.route:
+                    # print(f"pt_to_pt.route = {pt_to_pt.route}")
                     paths.append(pt_to_pt)
+
+            backup = (total_dist, paths)
 
             if total_dist < chosen_route[0] and possible:
                 if len(paths) != len(self.grid.obstacles):
@@ -267,6 +272,11 @@ class ShortestPath:
 
         self.route = chosen_route[1]
         self.distance = chosen_route[0]
+        # print(f"self.route = {self.route}")
+
+        if self.route is None and backup is not None:
+            self.route = backup[1]
+            self.distance = backup[0]
         # print("Chosen shortest route =", self.route, "Cost =", self.distance)
 
     @staticmethod
