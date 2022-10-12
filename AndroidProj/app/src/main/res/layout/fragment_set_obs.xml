@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".home_parts.Frag_SetObs">
+    <RadioGroup
+        android:id="@+id/toggle_groups"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        >
+        <androidx.appcompat.widget.AppCompatToggleButton
+            android:id="@+id/robot_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="SETTING ROBOT"
+            android:textOff="SET ROBOT"
+            />
+        <androidx.appcompat.widget.AppCompatToggleButton
+            android:id="@+id/obstacle_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="SETTING OBSTACLE"
+            android:textOff="SET OBSTACLE"
+            />
+        <androidx.appcompat.widget.AppCompatToggleButton
+            android:id="@+id/direction_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="SETTING DIRECTION"
+            android:textOff="SET DIRECTION"
+            />
+        <androidx.appcompat.widget.AppCompatToggleButton
+            android:id="@+id/type_toggle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textOn="SETTING TYPE"
+            android:textOff="SET TYPE"
+            />
+    </RadioGroup>
+</FrameLayout>
