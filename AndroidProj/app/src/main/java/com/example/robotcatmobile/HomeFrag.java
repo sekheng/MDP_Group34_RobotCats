@@ -92,5 +92,6 @@ public class HomeFrag extends Fragment {
                 tab.setText("SET");
             }
         })).attach();
+        mViewPager.setCurrentItem(1);
     }
 }
