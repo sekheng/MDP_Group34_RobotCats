@@ -10,26 +10,42 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         >
-        <androidx.appcompat.widget.AppCompatToggleButton
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                >
+                <androidx.appcompat.widget.AppCompatToggleButton
+                    android:id="@+id/obstacle_toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn="SETTING OBSTACLE"
+                    android:textOff="SET OBSTACLE"
+                    android:layout_marginRight="40dp"
+                    />
+                <androidx.appcompat.widget.AppCompatToggleButton
             android:id="@+id/robot_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textOn="SETTING ROBOT"
             android:textOff="SET ROBOT"
             />
-        <androidx.appcompat.widget.AppCompatToggleButton
-            android:id="@+id/obstacle_toggle"
+            </LinearLayout>
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textOn="SETTING OBSTACLE"
-            android:textOff="SET OBSTACLE"
-            />
+            android:orientation="horizontal">
         <androidx.appcompat.widget.AppCompatToggleButton
             android:id="@+id/direction_toggle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textOn="SETTING DIRECTION"
             android:textOff="SET DIRECTION"
+            android:layout_marginRight="40dp"
             />
         <androidx.appcompat.widget.AppCompatToggleButton
             android:id="@+id/type_toggle"
@@ -38,5 +54,7 @@
             android:textOn="SETTING TYPE"
             android:textOff="SET TYPE"
             />
+        </LinearLayout>
+        </LinearLayout>
     </RadioGroup>
 </FrameLayout>

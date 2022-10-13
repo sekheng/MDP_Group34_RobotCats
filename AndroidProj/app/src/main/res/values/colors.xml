@@ -15,4 +15,5 @@
     <color name="robot_status_title">#039BE5</color>
     <color name="colorRed">#DF1C1C</color>
     <color name="gray_DBD8D4">#DBD8D4</color>
+    <color name="fragment_bg">#F3F3F3</color>
 </resources>

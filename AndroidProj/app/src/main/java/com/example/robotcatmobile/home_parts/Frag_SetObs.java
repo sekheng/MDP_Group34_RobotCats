@@ -12,14 +12,15 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RadioGroup;
 
 import com.example.robotcatmobile.R;
 
+import java.util.ArrayList;
+
 @RequiresApi(api = Build.VERSION_CODES.N)
 public class Frag_SetObs extends Fragment {
-    // radio group for obstacles
-    RadioGroup mToggleGroups;
+    // the toggle buttons!
+    ArrayList<AppCompatToggleButton> mArrayToggle = new ArrayList<>();
 
     public Frag_SetObs() {
         // Required empty public constructor
@@ -36,34 +37,37 @@ public class Frag_SetObs extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        mToggleGroups = view.findViewById(R.id.toggle_groups);
+        mArrayToggle.add(view.findViewById(R.id.obstacle_toggle));
+        mArrayToggle.add(view.findViewById(R.id.robot_toggle));
+        mArrayToggle.add(view.findViewById(R.id.direction_toggle));
+        mArrayToggle.add(view.findViewById(R.id.type_toggle));
 
-        for (int j = 0; j < mToggleGroups.getChildCount(); j++) {
-            final AppCompatToggleButton toggleButton = (AppCompatToggleButton) mToggleGroups.getChildAt(j);
+        for (int j = 0; j < mArrayToggle.size(); j++) {
+            final AppCompatToggleButton toggleButton = mArrayToggle.get(j);
             toggleButton.setOnCheckedChangeListener((compoundButton, b) -> {
-                        String toggleButtonTxt = compoundButton.getText().toString();
-                        if (b) {
-                            for (int i = 0; i < mToggleGroups.getChildCount(); i++) {
-                                final AppCompatToggleButton otherToggle = (AppCompatToggleButton)mToggleGroups.getChildAt(i);
-                                if (compoundButton != otherToggle)
-                                    otherToggle.setChecked(false);
-                            }
-                            // then set the state
-                            for (SET_GRID_STATE state:SET_GRID_STATE.values()) {
-                                if (toggleButtonTxt.contains(state.toString())) {
-                                    GridRecycler.curInteractState = state;
-                                    break;
-                                }
-                            }
+                    String toggleButtonTxt = compoundButton.getText().toString();
+                    if (b) {
+                        for (int i = 0; i < mArrayToggle.size(); i++) {
+                            final AppCompatToggleButton otherToggle = mArrayToggle.get(i);
+                            if (compoundButton != otherToggle)
+                                otherToggle.setChecked(false);
                         }
-                        else {
-                            // then check and ensure that the buttons matched with the undex
-                            if (toggleButtonTxt.contains(GridRecycler.curInteractState.toString()))
-                            {
-                                GridRecycler.curInteractState = SET_GRID_STATE.NONE;
+                        // then set the state
+                        for (SET_GRID_STATE state:SET_GRID_STATE.values()) {
+                            if (toggleButtonTxt.contains(state.toString())) {
+                                GridRecycler.curInteractState = state;
+                                break;
                             }
                         }
                     }
+                    else {
+                        // then check and ensure that the buttons matched with the undex
+                        if (toggleButtonTxt.contains(GridRecycler.curInteractState.toString()))
+                        {
+                            GridRecycler.curInteractState = SET_GRID_STATE.NONE;
+                        }
+                    }
+                }
             );
         }
     }
