@@ -1,0 +1,2128 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2022 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+/* Includes ------------------------------------------------------------------*/
+#include "main.h"
+#include "cmsis_os.h"
+
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
+#include "math.h"
+#include "oled.h"
+#include "gyro.h"
+#include "motor.h"
+#include "servo.h"
+//#include "ICM20948.h"
+/* USER CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USER CODE BEGIN PTD */
+
+/* USER CODE END PTD */
+
+/* Private define ------------------------------------------------------------*/
+/* USER CODE BEGIN PD */
+#define CENTRE 150
+#define LEFT 100
+#define RIGHT 230
+#define ICMADDR 104  // 0b1101000
+#define PI 3.14159
+#define tarPWM 2500
+// TODO REFINE CONSTANTS AND PROGRAM USER BUTTON FOR PRESETS
+/* USER CODE END PD */
+
+/* Private macro -------------------------------------------------------------*/
+/* USER CODE BEGIN PM */
+
+/* USER CODE END PM */
+
+/* Private variables ---------------------------------------------------------*/
+ADC_HandleTypeDef hadc1;
+ADC_HandleTypeDef hadc2;
+DMA_HandleTypeDef hdma_adc1;
+DMA_HandleTypeDef hdma_adc2;
+
+I2C_HandleTypeDef hi2c1;
+
+TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim2;
+TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
+TIM_HandleTypeDef htim8;
+
+UART_HandleTypeDef huart3;
+
+/* Definitions for defaultTask */
+osThreadId_t defaultTaskHandle;
+const osThreadAttr_t defaultTask_attributes = {
+  .name = "defaultTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for ShowTask */
+osThreadId_t ShowTaskHandle;
+const osThreadAttr_t ShowTask_attributes = {
+  .name = "ShowTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for MotorTask */
+osThreadId_t MotorTaskHandle;
+const osThreadAttr_t MotorTask_attributes = {
+  .name = "MotorTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for EncoderTask */
+osThreadId_t EncoderTaskHandle;
+const osThreadAttr_t EncoderTask_attributes = {
+  .name = "EncoderTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for GyroTask */
+osThreadId_t GyroTaskHandle;
+const osThreadAttr_t GyroTask_attributes = {
+  .name = "GyroTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for IRTask */
+osThreadId_t IRTaskHandle;
+const osThreadAttr_t IRTask_attributes = {
+  .name = "IRTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for UserBtnTask */
+osThreadId_t UserBtnTaskHandle;
+const osThreadAttr_t UserBtnTask_attributes = {
+  .name = "UserBtnTask",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* USER CODE BEGIN PV */
+
+/* USER CODE END PV */
+
+/* Private function prototypes -----------------------------------------------*/
+void SystemClock_Config(void);
+static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
+static void MX_TIM8_Init(void);
+static void MX_TIM2_Init(void);
+static void MX_TIM3_Init(void);
+static void MX_TIM1_Init(void);
+static void MX_USART3_UART_Init(void);
+static void MX_I2C1_Init(void);
+static void MX_ADC1_Init(void);
+static void MX_ADC2_Init(void);
+static void MX_TIM4_Init(void);
+void StartDefaultTask(void *argument);
+void show(void *argument);
+void motor(void *argument);
+void encoder(void *argument);
+void gyro(void *argument);
+void ir(void *argument);
+void userbtn(void *argument);
+
+/* USER CODE BEGIN PFP */
+
+/* USER CODE END PFP */
+
+/* Private user code ---------------------------------------------------------*/
+/* USER CODE BEGIN 0 */
+
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+
+}
+
+
+uint8_t aRxBuffer[20];  // buffer for USART
+uint8_t I2CBuffer[20];  // buffer for I2C
+
+/* Gyro angle */
+double angle = 0;  // orientation of robot
+double angAdjL = 93.0/90.0;  // adjustment for left turn angle
+double angAdjR = 92.5/90.0;  // adjustment for right turn angle
+
+/* Encoder values */
+double dist = 0;  // track distance travelled
+double speedA = 0;  // speed of motor A
+double speedB = 0;  // speed of motor B
+double encAdj = 925.0;  // adjustment for encoder distance reading
+double encFwd = 925.0;
+double encBwd = 900.0;
+
+/* Motor PWM values */
+double tarStraightSpd = 86;  // target straight line speed for PID
+double tarTurnSpd = 50;  // target turning speed for PID
+double tarPWMA = tarPWM * 0.92;
+double tarPWMB = tarPWM;
+double pwmSlow = 800;  // default PWM for slow movement
+
+/* IR ADC buffer */
+uint16_t adc_res1[8000];
+uint16_t adc_res2[8000];
+
+/* Flag for any transmission sent */
+int flag = 0;
+
+/* User button toggle */
+int usrBtn = 0;  // for profile switch between lab and outdoor surface
+char profile[4] = "LAB";  // profile
+
+/* I2C Communication (Read) */
+void I2C_Read_Byte(uint8_t addr, uint8_t *data) {
+	I2CBuffer[0] = addr;
+	HAL_I2C_Master_Transmit(&hi2c1, ICMADDR << 1, I2CBuffer, 1, 10);
+	HAL_I2C_Master_Receive(&hi2c1, ICMADDR << 1, data, 2, 20);
+}
+/* I2C Communication (Write) */
+void I2C_Write_Byte(uint8_t addr, uint8_t data) {
+	I2CBuffer[0] = addr;
+	I2CBuffer[1] = data;
+	HAL_I2C_Master_Transmit(&hi2c1, ICMADDR << 1, I2CBuffer, 2, 20);
+}
+
+/* Ultrasound Read */
+void HCSR04_Read(void)
+{
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);  // pull the TRIG pin HIGH
+	osDelay(1);  // wait for 1 us
+	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_RESET);  // pull the TRIG pin low
+
+	__HAL_TIM_ENABLE_IT(&htim4, TIM_IT_CC1);
+}
+
+/* Ultrasound callback */
+uint32_t IC_Val1 = 0;
+uint32_t IC_Val2 = 0;
+uint32_t Difference = 0;
+uint8_t Is_First_Captured = 0;  // is the first value captured ?
+double ultra_Dist  = 0;
+
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
+{
+	if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1)  // if the interrupt source is channel1
+	{
+		if (Is_First_Captured==0) // if the first value is not captured
+		{
+			IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
+			Is_First_Captured = 1;  // set the first captured as true
+			// Now change the polarity to falling edge
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_FALLING);
+		}
+
+		else if (Is_First_Captured==1)   // if the first is already captured
+		{
+			IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);  // read second value
+			__HAL_TIM_SET_COUNTER(htim, 0);  // reset the counter
+			if (IC_Val2 > IC_Val1)
+			{
+				Difference = IC_Val2-IC_Val1;
+			}
+
+			else if (IC_Val1 > IC_Val2)
+			{
+				Difference = (0xffff - IC_Val1) + IC_Val2;
+			}
+			ultra_Dist = Difference * .034/2;
+			Is_First_Captured = 0; // set it back to false
+
+			// set polarity to rising edge
+			__HAL_TIM_SET_CAPTUREPOLARITY(htim, TIM_CHANNEL_1, TIM_INPUTCHANNELPOLARITY_RISING);
+			__HAL_TIM_DISABLE_IT(&htim4, TIM_IT_CC1);
+		}
+	}
+}
+
+/* IR monitoring */
+int curr_IR_R = 0;
+int prev_IR_R = 0;
+int curr_IR_L = 0;
+int prev_IR_L = 0;
+
+/* IR spike check */
+int IR_Spike(int curr_value, int past_value) {
+	if(abs(curr_value - past_value) >= 2.2*past_value) {
+		return 0;
+	}
+	else if (abs(curr_value - past_value) >= 2.2*curr_value) {
+		return 0;
+	}
+	else {
+		return 1;
+	}
+}
+
+/* Variables for task 2 */
+double dist_Obstacle = 0;  // distance between carpark and first obstacle
+int rr_flag = 0;
+int ll_flag = 0;
+
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
+int main(void)
+{
+  /* USER CODE BEGIN 1 */
+
+  /* USER CODE END 1 */
+
+  /* MCU Configuration--------------------------------------------------------*/
+
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  HAL_Init();
+
+  /* USER CODE BEGIN Init */
+
+  /* USER CODE END Init */
+
+  /* Configure the system clock */
+  SystemClock_Config();
+
+  /* USER CODE BEGIN SysInit */
+
+  /* USER CODE END SysInit */
+
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
+  MX_DMA_Init();
+  MX_TIM8_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
+  MX_TIM1_Init();
+  MX_USART3_UART_Init();
+  MX_I2C1_Init();
+  MX_ADC1_Init();
+  MX_ADC2_Init();
+  MX_TIM4_Init();
+  /* USER CODE BEGIN 2 */
+  OLED_Init();  // initialise OLED
+  motor_Init(&htim8, TIM_CHANNEL_1, TIM_CHANNEL_2);  // initialise motor
+  servo_Init(&htim1, TIM_CHANNEL_4);  // initialise servo
+  gyro_Init(); // initialise gyro
+  HAL_UART_Receive_IT(&huart3, (uint8_t *) aRxBuffer, 4);  // up to 4 characters
+  /* USER CODE END 2 */
+
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* USER CODE BEGIN RTOS_MUTEX */
+  /* add mutexes, ... */
+  /* USER CODE END RTOS_MUTEX */
+
+  /* USER CODE BEGIN RTOS_SEMAPHORES */
+  /* add semaphores, ... */
+  /* USER CODE END RTOS_SEMAPHORES */
+
+  /* USER CODE BEGIN RTOS_TIMERS */
+  /* start timers, add new ones, ... */
+  /* USER CODE END RTOS_TIMERS */
+
+  /* USER CODE BEGIN RTOS_QUEUES */
+  /* add queues, ... */
+  /* USER CODE END RTOS_QUEUES */
+
+  /* Create the thread(s) */
+  /* creation of defaultTask */
+  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+
+  /* creation of ShowTask */
+  ShowTaskHandle = osThreadNew(show, NULL, &ShowTask_attributes);
+
+  /* creation of MotorTask */
+  MotorTaskHandle = osThreadNew(motor, NULL, &MotorTask_attributes);
+
+  /* creation of EncoderTask */
+  EncoderTaskHandle = osThreadNew(encoder, NULL, &EncoderTask_attributes);
+
+  /* creation of GyroTask */
+  GyroTaskHandle = osThreadNew(gyro, NULL, &GyroTask_attributes);
+
+  /* creation of IRTask */
+  IRTaskHandle = osThreadNew(ir, NULL, &IRTask_attributes);
+
+  /* creation of UserBtnTask */
+  UserBtnTaskHandle = osThreadNew(userbtn, NULL, &UserBtnTask_attributes);
+
+  /* USER CODE BEGIN RTOS_THREADS */
+  /* add threads, ... */
+  /* USER CODE END RTOS_THREADS */
+
+  /* USER CODE BEGIN RTOS_EVENTS */
+  /* add events, ... */
+  /* USER CODE END RTOS_EVENTS */
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
+
+/**
+  * @brief System Clock Configuration
+  * @retval None
+  */
+void SystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  /** Configure the main internal regulator output voltage
+  */
+  __HAL_RCC_PWR_CLK_ENABLE();
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  /** Initializes the RCC Oscillators according to the specified parameters
+  * in the RCC_OscInitTypeDef structure.
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
+  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Initializes the CPU, AHB and APB buses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+}
+
+/**
+  * @brief ADC1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC1_Init(void)
+{
+
+  /* USER CODE BEGIN ADC1_Init 0 */
+
+  /* USER CODE END ADC1_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC1_Init 1 */
+
+  /* USER CODE END ADC1_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_11;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC1_Init 2 */
+
+  /* USER CODE END ADC1_Init 2 */
+
+}
+
+/**
+  * @brief ADC2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_ADC2_Init(void)
+{
+
+  /* USER CODE BEGIN ADC2_Init 0 */
+
+  /* USER CODE END ADC2_Init 0 */
+
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  /* USER CODE BEGIN ADC2_Init 1 */
+
+  /* USER CODE END ADC2_Init 1 */
+
+  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
+  */
+  hadc2.Instance = ADC2;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV8;
+  hadc2.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc2.Init.ScanConvMode = DISABLE;
+  hadc2.Init.ContinuousConvMode = ENABLE;
+  hadc2.Init.DiscontinuousConvMode = DISABLE;
+  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.NbrOfConversion = 1;
+  hadc2.Init.DMAContinuousRequests = ENABLE;
+  hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  if (HAL_ADC_Init(&hadc2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN ADC2_Init 2 */
+
+  /* USER CODE END ADC2_Init 2 */
+
+}
+
+/**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
+  * @brief TIM1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM1_Init(void)
+{
+
+  /* USER CODE BEGIN TIM1_Init 0 */
+
+  /* USER CODE END TIM1_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM1_Init 1 */
+
+  /* USER CODE END TIM1_Init 1 */
+  htim1.Instance = TIM1;
+  htim1.Init.Prescaler = 160;
+  htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim1.Init.Period = 1000;
+  htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
+  htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  if (HAL_TIM_Base_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM1_Init 2 */
+
+  /* USER CODE END TIM1_Init 2 */
+  HAL_TIM_MspPostInit(&htim1);
+
+}
+
+/**
+  * @brief TIM2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM2_Init(void)
+{
+
+  /* USER CODE BEGIN TIM2_Init 0 */
+
+  /* USER CODE END TIM2_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM2_Init 1 */
+
+  /* USER CODE END TIM2_Init 1 */
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 65535;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 10;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim2, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM2_Init 2 */
+
+  /* USER CODE END TIM2_Init 2 */
+
+}
+
+/**
+  * @brief TIM3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM3_Init(void)
+{
+
+  /* USER CODE BEGIN TIM3_Init 0 */
+
+  /* USER CODE END TIM3_Init 0 */
+
+  TIM_Encoder_InitTypeDef sConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM3_Init 1 */
+
+  /* USER CODE END TIM3_Init 1 */
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 65535;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+  sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC1Filter = 10;
+  sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
+  sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+  sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
+  sConfig.IC2Filter = 0;
+  if (HAL_TIM_Encoder_Init(&htim3, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM3_Init 2 */
+
+  /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_IC_InitTypeDef sConfigIC = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 16-1;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 65535;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_IC_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigIC.ICPolarity = TIM_INPUTCHANNELPOLARITY_RISING;
+  sConfigIC.ICSelection = TIM_ICSELECTION_DIRECTTI;
+  sConfigIC.ICPrescaler = TIM_ICPSC_DIV1;
+  sConfigIC.ICFilter = 0;
+  if (HAL_TIM_IC_ConfigChannel(&htim4, &sConfigIC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
+
+}
+
+/**
+  * @brief TIM8 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM8_Init(void)
+{
+
+  /* USER CODE BEGIN TIM8_Init 0 */
+
+  /* USER CODE END TIM8_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
+
+  /* USER CODE BEGIN TIM8_Init 1 */
+
+  /* USER CODE END TIM8_Init 1 */
+  htim8.Instance = TIM8;
+  htim8.Init.Prescaler = 0;
+  htim8.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim8.Init.Period = 7199;
+  htim8.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim8.Init.RepetitionCounter = 0;
+  htim8.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim8, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_Init(&htim8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim8, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 0;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
+  if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_TIM_PWM_ConfigChannel(&htim8, &sConfigOC, TIM_CHANNEL_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  if (HAL_TIMEx_ConfigBreakDeadTime(&htim8, &sBreakDeadTimeConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM8_Init 2 */
+
+  /* USER CODE END TIM8_Init 2 */
+
+}
+
+/**
+  * @brief USART3 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART3_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART3_Init 0 */
+
+  /* USER CODE END USART3_Init 0 */
+
+  /* USER CODE BEGIN USART3_Init 1 */
+
+  /* USER CODE END USART3_Init 1 */
+  huart3.Instance = USART3;
+  huart3.Init.BaudRate = 115200;
+  huart3.Init.WordLength = UART_WORDLENGTH_8B;
+  huart3.Init.StopBits = UART_STOPBITS_1;
+  huart3.Init.Parity = UART_PARITY_NONE;
+  huart3.Init.Mode = UART_MODE_TX_RX;
+  huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart3) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART3_Init 2 */
+
+  /* USER CODE END USART3_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream0_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream0_IRQn);
+  /* DMA2_Stream2_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream2_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream2_IRQn);
+
+}
+
+/**
+  * @brief GPIO Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_GPIO_Init(void)
+{
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOE_CLK_ENABLE();
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, OLED_SCL_Pin|OLED_SDA_Pin|OLED_RST_Pin|OLED_DC_Pin
+                          |LED3_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, AIN2_Pin|AIN1_Pin|BIN1_Pin|BIN2_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(Ultra_Trigger_GPIO_Port, Ultra_Trigger_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pins : OLED_SCL_Pin OLED_SDA_Pin OLED_RST_Pin OLED_DC_Pin
+                           LED3_Pin */
+  GPIO_InitStruct.Pin = OLED_SCL_Pin|OLED_SDA_Pin|OLED_RST_Pin|OLED_DC_Pin
+                          |LED3_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : AIN2_Pin AIN1_Pin BIN1_Pin BIN2_Pin */
+  GPIO_InitStruct.Pin = AIN2_Pin|AIN1_Pin|BIN1_Pin|BIN2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : USER_BTN_Pin */
+  GPIO_InitStruct.Pin = USER_BTN_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USER_BTN_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : Ultra_Trigger_Pin */
+  GPIO_InitStruct.Pin = Ultra_Trigger_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(Ultra_Trigger_GPIO_Port, &GPIO_InitStruct);
+
+}
+
+/* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)  // callback function when there is an interrupt
+{
+	/* Prevent unused argument(s) compilation warning */
+	UNUSED(huart);
+	flag = 1;
+	HAL_UART_Transmit(&huart3, (uint8_t *)aRxBuffer, 4, 0xFFFF);
+	HAL_UART_Receive_IT(&huart3, (uint8_t *) aRxBuffer, 4);  // up to 4 characters
+}
+/* USER CODE END 4 */
+
+/* USER CODE BEGIN Header_StartDefaultTask */
+/**
+  * @brief  Function implementing the defaultTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_StartDefaultTask */
+void StartDefaultTask(void *argument)
+{
+  /* USER CODE BEGIN 5 */
+//	uint8_t ch = 'A';
+	HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1);
+  /* Infinite loop */
+  for(;;)
+  {
+//	  HAL_UART_Transmit(&huart3, (uint8_t *) &ch, 1, 0xFFFF);
+//	  if(ch < 'Z') {
+//		  ch++;
+//	  }
+//	  else {
+//		  ch = 'A';
+//	  }
+
+	  HCSR04_Read();
+	  HAL_GPIO_TogglePin(LED3_GPIO_Port, LED3_Pin);
+	  osDelay(500);
+  }
+  /* USER CODE END 5 */
+}
+
+/* USER CODE BEGIN Header_show */
+/**
+* @brief Function implementing the ShowTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_show */
+void show(void *argument)
+{
+  /* USER CODE BEGIN show */
+	char hello[20] = "Hello World!\0";
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  // Display buffer
+	  sprintf(hello, "%s", aRxBuffer);
+	  OLED_ShowString(10, 10, hello);
+
+	  // Display speed
+//	  sprintf(hello, "A: %3d B: %3d", (int)speedA, (int)speedB);
+//	  OLED_ShowString(10, 30, hello);
+
+//	  // Display angle
+	  sprintf(hello, "Angle: %4d", (int)angle);
+	  OLED_ShowString(10, 30, hello);  // show oled
+
+	  // Display distance
+//	  sprintf(hello, "Dist: %3d", (int)dist);
+//	  OLED_ShowString(10, 20, hello);
+
+	  // Display IR
+	  sprintf(hello, "IR1: %5d", (int)curr_IR_L);
+	  OLED_ShowString(10, 40, hello);
+	  sprintf(hello, "IR2: %5d", (int)curr_IR_R);
+	  OLED_ShowString(10, 50, hello);
+
+	  //Display ultrasound
+	  sprintf(hello, "Ultra: %4d", (int)ultra_Dist);
+	  OLED_ShowString(10, 20, hello);
+
+	  // Display profile
+	  sprintf(hello, "%s", profile);
+	  OLED_ShowString(100, 10, hello);
+
+	  OLED_Refresh_Gram();
+	  osDelay(100);
+  }
+  /* USER CODE END show */
+}
+
+/* USER CODE BEGIN Header_motor */
+/**
+* @brief Function implementing the MotorTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_motor */
+void motor(void *argument)
+{
+  /* USER CODE BEGIN motor */
+	uint8_t ack[4] = {'k','k','k','k'};  // acknowledgment message
+	servo_Turn(CENTRE);
+	osDelay(100);
+  /* Infinite loop */
+  for(;;)
+  {
+	  	if(flag) {  // enter only if receive movement command
+	  		double maintainAngle;  // angle to maintain
+	  		angle = 0;  // reset angle to 0
+	  		dist = 0;  // reset distance to 0
+	  		char dir = (char) aRxBuffer[0];  // first character indicates direction
+	  		int value = (int) (aRxBuffer[1] - '0') * 100 + (int) (aRxBuffer[2] - '0') * 10 + (int) (aRxBuffer[3] - '0');  // remaining indicates angle/distance
+	  		mIntegralA = 0;  // initialise integral for motor A PID
+	  		mIntegralB = 0;  // initialise integral for motor B PID
+	  		sIntegral = 0;  // initialise integral for servo motor
+	  		switch(dir) {
+	  			case 'w':
+	  				/*
+	  				 * Move forward for a specific distance, using PID on servo and backwheel to correct deviations in path
+	  				 */
+	  				encAdj = encFwd;
+	  				servo_Turn(CENTRE);
+	  				osDelay(100);
+	  				maintainAngle = angle;
+	  				dist = 0;
+	  				sIntegral = 0;
+	  				motor_Forward(tarPWMA, tarPWMB);  // move forward
+	  				while(dist < value - 15) {
+//	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				while(dist < value) {
+//	  					servo_CorrectForward(angle, maintainAngle);
+	  					motor_Forward(pwmSlow, pwmSlow);
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				break;
+	  			case 's':
+	  				/*
+	  				 * Move backward for a specific distance, using PID on servo and backwheel to correct deviations in path
+	  				 */
+	  				encAdj = encBwd;
+	  				servo_Turn(CENTRE);
+	  				osDelay(100);
+	  				maintainAngle = angle;
+	  				dist = 0;
+	  				motor_Backward(pwmSlow, pwmSlow);  // move backward
+	  				osDelay(100);
+	  				while(dist < value - 15) {
+	  					servo_CorrectBackward(angle, maintainAngle);
+	  					motor_CorrectA(speedA, tarStraightSpd);
+	  					motor_CorrectB(speedB, tarStraightSpd);
+	  					osDelay(50);
+	  				}
+	  				while(dist < value) {
+	  					servo_CorrectBackward(angle, maintainAngle);
+	  					motor_Backward(pwmSlow, pwmSlow);
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				break;
+	  			case 'q':
+	  				/* Task 2 */
+//	  				servo_Turn(LEFT);  // turn left
+//	  				osDelay(200);
+//	  				motor_Forward(tarPWMA/2, tarPWMB);
+//	  				while(angle < (value - 15)) {  // reach angle/2 - 5
+//	  					osDelay(50);
+//	  				}
+//	  				motor_Forward(pwmSlow, pwmSlow);
+//	  				while(angle < value) {  // reach angle/2
+//	  					osDelay(50);
+//	  				}
+//	  				motor_Stop();
+//	  				servo_Turn(CENTRE);  // centre
+//	  				osDelay(200);
+//	  				break;
+	  				/* Tight turn implementation */
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelayUntil(200);
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < (value/2.0 - 10)) {  // reach angle/2 - 5
+	  					motor_CorrectA(speedA, tarTurnSpd/2);
+	  					motor_CorrectB(speedB, tarTurnSpd);
+	  					osDelayUntil(50);
+	  				}
+	  				while(angle < value/2.0) {  // reach angle/2
+	  					motor_Forward(pwmSlow, pwmSlow);
+	  					osDelayUntil(50);
+	  				}
+	  				motor_Stop();
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelayUntil(200);
+	  				dist = 0;
+	  				encAdj = encBwd;
+	  				motor_Backward(0, 0);  // move backward
+	  				while(dist < 8) {
+	  					motor_Backward(pwmSlow, pwmSlow);
+	  					osDelayUntil(50);
+	  				}
+	  				motor_Stop();
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelayUntil(200);
+	  				angle = 0;
+	  				mIntegralA = 0;
+	  				mIntegralB = 0;
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < (value/2.0 - 10)) {  // reach angle - 5
+	  					motor_CorrectA(speedA, tarTurnSpd/2);
+	  					motor_CorrectB(speedB, tarTurnSpd);
+	  					osDelayUntil(50);
+	  				}
+	  				while(angle < value/2.0) {  // reach angle
+	  					motor_Forward(pwmSlow, pwmSlow);
+	  					osDelayUntil(50);
+	  				}
+	  				motor_Stop();
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelayUntil(200);
+	  				dist = 0;
+	  				encAdj = encBwd;
+	  				motor_Backward(0, 0);  // move backward
+	  				while(dist < 7) {
+	  					motor_Backward(pwmSlow, pwmSlow);
+	  					osDelayUntil(50);
+	  				}
+	  				motor_Stop();
+	  				break;
+	  			case 'e':
+	  				/* Task 2 */
+	  				servo_Turn(RIGHT);  // turn left
+	  				osDelay(200);
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-value + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -value) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(200);
+	  				break;
+	  				/* Third implementation */
+//	  				servo_Turn(RIGHT);  // turn right
+//	  				osDelayUntil(200);
+//	  				motor_Forward(pwmSlow, pwmSlow);
+//	  				while(angle > (-value/2.0 + 10)) {  // reach -angle/2 + 7
+//	  					motor_CorrectA(speedA, tarTurnSpd);
+//	  					motor_CorrectB(speedB, tarTurnSpd/2);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				while(angle > -value/2.0) {  // reach angle/2
+//	  					motor_Forward(pwmSlow, pwmSlow);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				motor_Stop();
+//	  				servo_Turn(CENTRE);  // centre
+//	  				osDelayUntil(200);
+//	  				dist = 0;
+//	  				encAdj = encBwd;
+//	  				motor_Backward(0, 0);  // move backward
+//	  				while(dist < 21) {
+//	  					motor_Backward(pwmSlow, pwmSlow);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				motor_Stop();
+//	  				servo_Turn(RIGHT);  // turn right
+//	  				osDelayUntil(200);
+//	  				angle = 0;
+//	  				mIntegralA = 0;
+//	  				mIntegralB = 0;
+//	  				motor_Forward(pwmSlow, pwmSlow);
+//	  				while(angle > (-value/2.0 + 10)) {  // reach -angle/2 + 7
+//	  					motor_CorrectA(speedA, tarTurnSpd);
+//	  					motor_CorrectB(speedB, tarTurnSpd/2);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				while(angle > -value/2.0) {  // reach angle/2
+//	  					motor_Forward(pwmSlow, pwmSlow);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				motor_Stop();
+//	  				servo_Turn(CENTRE);  // centre
+//	  				osDelayUntil(200);
+//	  				dist = 0;
+//	  				encAdj = encBwd;
+//	  				motor_Backward(0, 0);  // move backward
+//	  				while(dist < 5) {
+//	  					motor_Backward(pwmSlow, pwmSlow);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				motor_Stop();  // stop
+//	  				break;
+	  			case 'a':
+	  				encAdj = encFwd;
+	  				while(dist < 6) {
+	  					motor_Forward(pwmSlow, pwmSlow);
+	  					osDelayUntil(50);
+	  				}
+	  				motor_Stop();
+	  				osDelayUntil(100);
+	  				for (int i=0;i<3;i++) {
+	  					angle = 0;
+						servo_Turn(LEFT);  // turn left
+						osDelayUntil(400);
+						motor_Forward(0, 0);  // move forward
+						while(angle < (14.5 - 7)) {  // reach 15-7
+							motor_CorrectA(speedA, 13);
+							motor_CorrectB(speedB, 23);
+							osDelayUntil(50);
+						}
+						while(angle < 14.5) {  // reach 15
+							motor_Forward(pwmSlow, pwmSlow);
+							osDelayUntil(50);
+						}
+						motor_Stop();
+						servo_Turn(RIGHT);  // turn right
+						osDelayUntil(400);
+						angle = 0;
+						motor_Backward(0, 0);  // move backward
+						while(angle < (14.5 - 7)) {  // reach 15-7
+							motor_CorrectA(speedA, 23);
+							motor_CorrectB(speedB, 13);
+							osDelayUntil(50);
+						}
+						while(angle < 14.5) {  // reach 15
+							motor_Backward(pwmSlow, pwmSlow);
+							osDelayUntil(50);
+						}
+						motor_Stop();
+	  				}
+	  				dist = 0;
+	  				motor_Stop();
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelayUntil(200);
+	  				encAdj = encBwd;
+	  				motor_Backward(0, 0);
+	  				while(dist < 3) {
+	  					motor_Backward(pwmSlow, pwmSlow);
+	  					osDelayUntil(50);
+	  				}
+	  				servo_Turn(CENTRE);  // centre
+	  				motor_Stop();  // stop
+	  				break;
+//	  			case 'd':
+//	  				encAdj = encFwd;
+//	  				servo_Turn(CENTRE);
+//	  				osDelayUntil(200);
+//	  				while(dist < 7) {
+//	  					motor_Forward(pwmSlow, pwmSlow);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				motor_Stop();
+//	  				osDelayUntil(100);
+//	  				for (int i=0;i<3;i++) {
+//	  					angle = 0;
+//	  					servo_Turn(RIGHT);  // turn right
+//	  					osDelayUntil(400);
+//	  					motor_Forward(0, 0);  // move forward
+//		  				while(angle > (-13 + 7)) {  // reach angle + 5
+//		  					motor_CorrectA(speedA, 23);
+//		  					motor_CorrectB(speedB, 13);
+//		  					osDelayUntil(50);
+//		  				}
+//		  				while(angle > -13) {  // reach angle
+//		  					motor_Forward(pwmSlow, pwmSlow);
+//		  					osDelayUntil(50);
+//		  				}
+//		  				motor_Stop();
+//		  				servo_Turn(LEFT);  // turn left
+//		  				osDelayUntil(400);
+//		  				angle = 0;
+//		  				motor_Backward(0, 0);  // move backward
+//		  				while(angle > (-13 + 7)) {  // reach angle - 5
+//		  					motor_CorrectA(speedA, 13);
+//		  					motor_CorrectB(speedB, 23);
+//		  					osDelayUntil(50);
+//		  				}
+//		  				while(angle > -13) {  // reach angle
+//		  					motor_Backward(pwmSlow, pwmSlow);
+//		  					osDelayUntil(50);
+//		  				}
+//		  				motor_Stop();
+//	  				}
+//	  				servo_Turn(CENTRE);
+//	  				dist = 0;
+//	  				encAdj = encBwd;
+//	  				while(dist < 3) {
+//	  					motor_Backward(pwmSlow, pwmSlow);
+//	  					osDelayUntil(50);
+//	  				}
+//	  				servo_Turn(CENTRE);  // centre
+//	  				osDelayUntil(200);
+//	  				motor_Stop();  // stop
+//	  				break;
+	  			case 'o':
+	  				/*
+	  				 * Task 2 - Forward Movement for image
+	  				 */
+	  				encAdj = encFwd;
+	  				// SECTION: MOVING FORWARD
+	  				servo_Turn(CENTRE);
+	  				osDelay(100);
+	  				maintainAngle = angle;
+	  				motor_Forward(tarPWMA, tarPWMB);  // move forward
+	  				while(ultra_Dist > 47) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);  // move forward
+	  				while(ultra_Dist > 27) {  // 30cm from obstacle
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();  // stop
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(100);
+	  				dist_Obstacle = dist;
+	  				break;
+	  			case 'k':
+	  				/*
+	  				 * Task 2 - 1st obstacle left arrow
+	  				 */
+	  				ll_flag = 1;
+	  				//SECTION 1: TURN LEFT 55 DEGREES
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelay(200);
+	  				motor_Forward(tarPWMA/2, tarPWMB);
+	  				while(angle < 55 - 15) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < 55) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 2: TURN RIGHT 100 DEGREES
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(400);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-100 + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -100) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 3: TURN LEFT 45 DEGREES
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelay(400);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA/2, tarPWMB);
+	  				while(angle < 45 - 15) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < 45) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 4: GO FORWARD/BACKWARD DEPENDING ON DISTANCE
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(200);
+	  				angle = 0;
+	  				maintainAngle = angle;
+	  				if(ultra_Dist < 25) {
+	  					encAdj = encBwd;
+	  					motor_Backward(pwmSlow, pwmSlow);
+	  					while(ultra_Dist < 25) {
+	  						servo_CorrectBackward(angle, maintainAngle);
+	  						osDelay(50);
+	  					}
+	  				}
+	  				else {
+	  					encAdj = encFwd;
+	  					motor_Forward(tarPWMA, tarPWMB);  // move forward
+		  				while(ultra_Dist > 55) {
+		  					servo_CorrectForward(angle, maintainAngle);
+		  					osDelay(50);
+		  				}
+		  				motor_Forward(pwmSlow, pwmSlow);  // move forward
+		  				while(ultra_Dist > 35) {  // 30cm from obstacle
+		  					servo_CorrectForward(angle, maintainAngle);
+		  					osDelay(50);
+		  				}
+	  				}
+	  				motor_Stop();  // stop
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(100);
+	  				break;
+	  			case 'l':
+	  				/*
+	  				 * Task 2 - 1st obstacle right arrow
+	  				 */
+	  				rr_flag = 1;
+	  				// SECTION 1: TURN RIGHT 55 DEGREES
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(200);
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-55 + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -55) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 2: TURN LEFT 100 DEGREES
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelay(400);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA/2, tarPWMB);
+	  				while(angle < 100 - 15) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < 100) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 3: TURN RIGHT 45 DEGREES
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(400);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-45 + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -45) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 4: GO FORWARD/BACKWARD DEPENDING ON DISTANCE
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(200);
+	  				angle = 0;
+	  				maintainAngle = angle;
+	  				if(ultra_Dist < 25) {
+	  					encAdj = encBwd;
+	  					motor_Backward(pwmSlow, pwmSlow);
+	  					while(ultra_Dist < 25) {
+	  						servo_CorrectBackward(angle, maintainAngle);
+	  						osDelay(50);
+	  					}
+	  				}
+	  				else {
+	  					encAdj = encFwd;
+	  					motor_Forward(tarPWMA, tarPWMB);  // move forward
+		  				while(ultra_Dist > 55) {
+		  					servo_CorrectForward(angle, maintainAngle);
+		  					osDelay(50);
+		  				}
+		  				motor_Forward(pwmSlow, pwmSlow);  // move forward
+		  				while(ultra_Dist > 35) {  // 30cm from obstacle
+		  					servo_CorrectForward(angle, maintainAngle);
+		  					osDelay(50);
+		  				}
+	  				}
+	  				motor_Stop();  // stop
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(100);
+	  				break;
+	  			case 'n':
+	  				/*
+	  				 * Task 2 - 2nd obstacle left arrow
+	  				 */
+	  				// SECTION 1: TURN LEFT
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelay(200);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA/2, tarPWMB);
+	  				while(angle < 90 - 15) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < 90) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+					// SECTION 1.5: MINOR BACKWARD CORRECTION FOR LL
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+					if(ll_flag) {
+						motor_Backward(pwmSlow, pwmSlow);
+						osDelay(1000);
+					}
+	  				// SECTION 2: CONTINUE UNTIL END OF OBSTACLE 2
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+	  				angle = 0;
+	  				dist = 0;
+	  				sIntegral = 0;
+	  				maintainAngle = angle;
+	  				motor_Forward(tarPWMA/2, tarPWMB/2);
+	  				while(curr_IR_R > 900) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 3: TURN RIGHT
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(200);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-180 + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -180) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 4: CONTINUE UNTIL END OF OBSTACLE 2
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+	  				angle = 0;
+	  				dist = 0;
+	  				sIntegral = 0;
+	  				maintainAngle = angle;
+	  				motor_Forward(tarPWMA/2, tarPWMB/2);
+	  				while(dist < 35) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				while(curr_IR_R > 900) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 5: TURN RIGHT
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(200);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-88 + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -88) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 6: MOVE PAST OBSTACLE 2, CONTINUE UNTIL OBSTACLE 1
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+	  				encAdj = encFwd;
+	  				angle = 0;
+	  				dist = 0;
+	  				sIntegral = 0;
+	  				maintainAngle = angle;
+	  				motor_Forward(tarPWMA/2, tarPWMB/2);
+	  				while(dist < 35) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				angle = 0;
+	  				sIntegral = 0;
+	  				maintainAngle = angle;
+	  				motor_Forward(tarPWMA, tarPWMB);
+	  				while(curr_IR_R < 800) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(tarPWMA/2, tarPWMB/2);
+	  				osDelay(500);
+	  				motor_Stop();
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+	  				// SECTION 7: TURN RIGHT
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(200);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > -75 + 20) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -75) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 8: CONTINUE UNTIL OBSTACLE 1
+//	  				servo_Turn(CENTRE);
+//	  				osDelay(200);
+//	  				angle = 0;
+//	  				maintainAngle = angle;
+//	  				motor_Forward(tarPWMA/2, tarPWMB/2);
+//	  				while(adc_res1[0] < 400) {
+//	  					servo_CorrectForward(angle, maintainAngle);
+//	  					osDelay(50);
+//	  				}
+//	  				motor_Stop();
+	  				// SECTION 9: TURN LEFT
+	  				servo_Turn(LEFT);  // turn left
+	  				osDelay(200);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA/2, tarPWMB);
+	  				while(angle < 80 - 20) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle < 80) {  // reach angle/2 - 5
+	  					 osDelay(50);
+	  				}
+	  				motor_Stop();
+	  				// SECTION 10: HEAD INTO CARPARK
+	  				servo_Turn(CENTRE);
+	  				osDelay(100);
+	  				angle = 0;
+	  				sIntegral = 0;
+	  				maintainAngle = angle;
+	  				motor_Forward(tarPWMA, tarPWMB);  // move forward
+	  				while(ultra_Dist > 35) {
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);  // move forward
+	  				while(ultra_Dist > 15) {  // 30cm from obstacle
+	  					servo_CorrectForward(angle, maintainAngle);
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();  // stop
+	  				servo_Turn(CENTRE);  // centre
+	  				osDelay(100);
+	  				break;
+	  			case 'm':
+	  				/*
+	  				 * Task 2 - 2nd obstacle right arrow
+	  				 */
+	  				// SECTION 1: TURN RIGHT
+	  				servo_Turn(RIGHT);  // turn right
+	  				osDelay(200);
+	  				angle = 0;
+	  				motor_Forward(tarPWMA, tarPWMB/2);
+	  				while(angle > (-90 + 15)) {  // reach angle/2 - 5
+	  					osDelay(50);
+	  				}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -90) {  // reach angle/2
+	  					osDelay(50);
+	  				}
+	  				motor_Stop();
+					// SECTION 1.5: MINOR BACKWARD CORRECTION FOR RR
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+					if(rr_flag) {
+						motor_Backward(pwmSlow, pwmSlow);
+						osDelay(1000);
+					}
+	  				// SECTION 2: CONTINUE UNTIL END OF OBSTACLE 2
+	  				servo_Turn(CENTRE);
+	  				osDelay(200);
+	  				angle = 0;
+					dist = 0;
+					maintainAngle = angle;
+					motor_Forward(tarPWMA/2, tarPWMB/2);
+					while(curr_IR_L > 900) {
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+					motor_Stop();
+					// SECTION 3: TURN LEFT
+					servo_Turn(LEFT);  // turn left
+					osDelay(200);
+					angle = 0;
+					motor_Forward(tarPWMA/2, tarPWMB);
+					while(angle < (179 - 15)) {  // reach angle/2 - 5
+						osDelay(50);
+					}
+					motor_Forward(pwmSlow, pwmSlow);
+					while(angle < 179) {  // reach angle/2
+						osDelay(50);
+					}
+					motor_Stop();
+					// SECTION 4: CONTINUE UNTIL END OF OBSTACLE 2
+					servo_Turn(CENTRE);
+					osDelay(200);
+					angle = 0;
+					dist = 0;
+					sIntegral = 0;
+					maintainAngle = angle;
+					motor_Forward(tarPWMA/2, tarPWMB/2);
+					while(dist < 35) {
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+					while(curr_IR_L > 900) {
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+					motor_Stop();
+					// SECTION 5: TURN LEFT
+					servo_Turn(LEFT);  // turn left
+					osDelay(200);
+					angle = 0;
+					motor_Forward(tarPWMA/2, tarPWMB);
+					while(angle < 90 - 15) {  // reach angle/2 - 5
+						osDelay(50);
+					}
+					motor_Forward(pwmSlow, pwmSlow);
+					while(angle < 90) {  // reach angle/2
+						osDelay(50);
+					}
+					motor_Stop();
+					// SECTION 6: MOVE PAST OBSTACLE 2, CONTINUE UNTIL OBSTACLE 1
+					servo_Turn(CENTRE);
+					osDelay(200);
+					encAdj = encFwd;
+					angle = 0;
+					dist = 0;
+					sIntegral = 0;
+					maintainAngle = angle;
+					motor_Forward(tarPWMA/2, tarPWMB/2);
+					while(dist < 35) {
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+					motor_Forward(tarPWMA, tarPWMB);
+					while(curr_IR_L < 650) {
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+	  				motor_Forward(tarPWMA/2, tarPWMB/2);
+	  				osDelay(1000);
+					motor_Stop();
+					servo_Turn(CENTRE);
+					osDelay(200);
+					// SECTION 7: TURN LEFT
+					servo_Turn(LEFT);  // turn left
+					osDelay(200);
+					angle = 0;
+					motor_Forward(tarPWMA/2, tarPWMB);
+					while(angle < 80 - 20) {  // reach angle/2 - 5
+						osDelay(50);
+					}
+					motor_Forward(pwmSlow, pwmSlow);
+					while(angle < 80) {  // reach angle/2
+						osDelay(50);
+					}
+					motor_Stop();
+					// SECTION 8: CONTINUE UNTIL OBSTACLE 1
+//					servo_Turn(CENTRE);
+//					osDelay(200);
+//					angle = 0;
+//					maintainAngle = angle;
+//					motor_Forward(tarPWMA/2, tarPWMB/2);
+//					while(adc_res2[0] < 400) {
+//						servo_CorrectForward(angle, maintainAngle);
+//						osDelay(50);
+//					}
+//					motor_Stop();
+					// SECTION 9: TURN RIGHT
+					servo_Turn(RIGHT);  // turn right
+					osDelay(200);
+					angle = 0;
+					motor_Forward(tarPWMA, tarPWMB/2);
+					while(angle > -70 + 20) {  // reach angle/2 - 5
+						osDelay(50);
+					}
+	  				motor_Forward(pwmSlow, pwmSlow);
+	  				while(angle > -70) {  // reach angle/2 - 5
+	  					 osDelay(50);
+	  				}
+					motor_Stop();
+					// SECTION 10: HEAD INTO CARPARK
+					servo_Turn(CENTRE);
+					osDelay(200);
+					angle = 0;
+					sIntegral = 0;
+					maintainAngle = angle;
+					motor_Forward(tarPWMA, tarPWMB);  // move forward
+					while(ultra_Dist > 40) {
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+					motor_Forward(pwmSlow, pwmSlow);  // move forward
+					while(ultra_Dist > 20) {  // 30cm from obstacle
+						servo_CorrectForward(angle, maintainAngle);
+						osDelay(50);
+					}
+					motor_Stop();  // stop
+					servo_Turn(CENTRE);  // centre
+					osDelay(100);
+					break;
+	  			case 'r':
+	  				servo_Turn(CENTRE);  // straighten
+	  				osDelay(200);
+	  				motor_Stop();
+	  				break;
+	  		}
+	  		HAL_UART_Transmit(&huart3, (uint8_t *) &ack, 4, 0xFFFF);
+	  		flag = 0;
+	  	}
+	  osDelay(100);
+  }
+
+  /* USER CODE END motor */
+}
+
+/* USER CODE BEGIN Header_encoder */
+/**
+* @brief Function implementing the EncoderTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_encoder */
+void encoder(void *argument)
+{
+  /* USER CODE BEGIN encoder */
+	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);  // Encoder Motor A
+	HAL_TIM_Encoder_Start(&htim3, TIM_CHANNEL_ALL);  // Encoder Motor B
+
+	int cnt1, cnt2, diffA;  // for two time intervals, find difference for A
+	int cnt3, cnt4, diffB;  // for two time intervals, find difference for B
+	uint32_t tick;
+
+	cnt1 = __HAL_TIM_GET_COUNTER(&htim2);  // whenever there is a rising edge, add 1 to counter for A
+	cnt3 = __HAL_TIM_GET_COUNTER(&htim3);  // whenever there is a rising edge, add 1 to counter for B
+	tick = HAL_GetTick();
+	char hello[20];
+//	uint16_t dirA, dirB;  // for negative distance implementation
+	double distA, distB;
+	distA = 0;
+	distB = 0;
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  if(HAL_GetTick() - tick > 100) {
+		  cnt2 = __HAL_TIM_GET_COUNTER(&htim2);  // second time interval for A
+		  cnt4 = __HAL_TIM_GET_COUNTER(&htim3);  // second time interval for B
+		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2)) {  // for A
+			  if(cnt2 < cnt1)
+				  diffA = cnt1 - cnt2;
+			  else
+				  diffA = (65535 - cnt2) + cnt1;
+		  }
+		  else {
+			  if(cnt2 > cnt1)
+				  diffA = cnt2 - cnt1;
+			  else
+				  diffA = (65535 - cnt1) + cnt2;
+		  }  // end A
+
+		  if(__HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3)) {  // for B
+			  if(cnt4 < cnt3)
+				  diffB = cnt3 - cnt4;
+			  else
+				  diffB = (65535 - cnt4) + cnt3;
+		  }
+		  else {
+			  if(cnt4 > cnt3)
+				  diffB = cnt4 - cnt3;
+			  else
+				  diffB = (65535 - cnt3) + cnt4;
+		  }  // end B
+
+		  if(diffA >= 50000 && diffA <= 65535) diffA = 0;  // handle stationary
+		  if(diffB >= 50000 && diffB <= 65535) diffB = 0;  // handle stationary
+
+		  distA = (20.7 / encAdj) * diffA; // calculate right distance
+		  distB = (20.7 / encAdj) * diffB; // calculate left distance
+		  // multiply reducer ratio and resolution (30*11=330) and multiply by 4 for quadrature
+		  // in this case, values are slightly different due to hardware inconsistencies
+
+		  speedA = (distA * 1000) / (double) (HAL_GetTick() - tick);
+		  speedB = (distB * 1000) / (double) (HAL_GetTick() - tick);
+
+		  dist += (distA + distB) / 2.0;
+
+		  // NEGATIVE DISTANCE IMPLEMENTATION
+//		  dirA = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim2);
+//		  dirB = __HAL_TIM_IS_TIM_COUNTING_DOWN(&htim3);
+//		  if (dirA && !dirB) {
+//			  dist += (distA + distB) / 2.0;
+//		  }
+//		  else {
+//			  dist -= (distA + distB) / 2.0;
+//		  }
+
+		  int tmpInt1 = dist;
+		  float tmpFrac = dist - tmpInt1;  // Get fraction (0.0123).
+		  int tmpInt2 = trunc(tmpFrac * 1000);  // Turn into integer (123).
+//		  sprintf(hello, "Dist: %d.%03d", (int)tmpInt1, tmpInt2);
+
+
+		  cnt1 = __HAL_TIM_GET_COUNTER(&htim2);  // whenever there is a rising edge, add 1 to counter for A
+		  cnt3 = __HAL_TIM_GET_COUNTER(&htim3);  // whenever there is a rising edge, add 1 to counter for B
+		  tick = HAL_GetTick();
+	  }
+	  osDelay(100);
+  }
+  /* USER CODE END encoder */
+}
+
+/* USER CODE BEGIN Header_gyro */
+/**
+* @brief Function implementing the GyroTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_gyro */
+void gyro(void *argument)
+{
+  /* USER CODE BEGIN gyro */
+	uint8_t gVal[2] = {0, 0};  // Store raw gyro reading
+	double gyro_drift = 0;
+	int16_t angular_rate = 0;
+	uint32_t tick;
+	gyro_drift = gyro_Calibrate();  // find gyro drift
+	tick = HAL_GetTick();
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  if(HAL_GetTick() - tick >= 100) {  // 100ms interval
+		  I2C_Read_Byte(0x37, gVal);  // read GYRO_ZOUT_H and L combined, default user bank 0
+		  angular_rate = (gVal[0] << 8) | gVal[1];  // combining the two 8 bit values to get rate of change of angle
+		  if (angular_rate > 0) {
+			  angle += ((double) angular_rate - gyro_drift) * ((HAL_GetTick() - tick) / (16.4 * 1000)) * angAdjL;  // calculate angle
+		  }
+		  else {
+			  angle += ((double) angular_rate - gyro_drift) * ((HAL_GetTick() - tick) / (16.4 * 1000)) * angAdjR;  // calculate angle
+		  }
+		  // multiply angular rate and period, but divide by sensitivity scale factor of 16.4 and
+		  // 1000 since ms and multiplied by sensitivity scale factor tolerance
+
+		  if(angle > 360) {  // more than a 360 degree turn anticlockwise
+			  angle = 0;
+		  }
+		  else if (angle < -360) {  // more than a 360 degree turn clockwise
+			  angle = 0;
+		  }
+
+//		  int tmpInt1 = angle;
+//		  float tmpFrac = angle - tmpInt1;  // Get fraction (0.0123).
+//		  int tmpInt2 = trunc(tmpFrac * 100);  // Turn into integer (123).
+
+		  tick = HAL_GetTick();
+	  }
+	  osDelay(100);
+  }
+  /* USER CODE END gyro */
+}
+
+/* USER CODE BEGIN Header_ir */
+/**
+* @brief Function implementing the IRTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_ir */
+void ir(void *argument)
+{
+  /* USER CODE BEGIN ir */
+	HAL_ADC_Start_DMA(&hadc1, adc_res1, 8000);
+	HAL_ADC_Start_DMA(&hadc2, adc_res2, 8000);
+  /* Infinite loop */
+  for(;;)
+  {
+	  curr_IR_R = (adc_res1[0] + adc_res1[1] + adc_res1[2] + adc_res1[3] + adc_res1[4]) / 5;
+	  curr_IR_L = (adc_res2[0] + adc_res2[1] + adc_res2[2] + adc_res2[3] + adc_res2[4]) / 5;
+	  osDelay(100);
+  }
+  /* USER CODE END ir */
+}
+
+/* USER CODE BEGIN Header_userbtn */
+/**
+* @brief Function implementing the UserBtnTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_userbtn */
+void userbtn(void *argument)
+{
+  /* USER CODE BEGIN userbtn */
+
+  /* Infinite loop */
+  for(;;)
+  {
+	  if(HAL_GPIO_ReadPin(GPIOD, USER_BTN_Pin) == 0) {
+		  // profile switching
+		  usrBtn += 1;
+		  if (usrBtn % 2 == 0) {
+			  /* CONFIG FOR LAB */
+			  tarStraightSpd = 50;
+			  sKpF = 4.5;
+			  sKpB = 4;
+			  strcpy(profile, "LAB");
+		  }
+		  else {
+			  /* CONFIG FOR OUTDOOR */
+			  tarStraightSpd = 40;
+			  tarTurnSpd = 40;
+			  sKpF = 3;
+			  sKpB = 3;
+			  strcpy(profile, "OUT");
+		  }
+		  osDelay(500);
+	  }
+
+	  if (usrBtn > 50) {  // reset count to prevent overflow
+		  usrBtn = 0;
+	  }
+	  osDelay(100);
+  }
+  /* USER CODE END userbtn */
+}
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void Error_Handler(void)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+  while (1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
+
+#ifdef  USE_FULL_ASSERT
+/**
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
+void assert_failed(uint8_t *file, uint32_t line)
+{
+  /* USER CODE BEGIN 6 */
+  /* User can add his own implementation to report the file name and line number,
+     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  /* USER CODE END 6 */
+}
+#endif /* USE_FULL_ASSERT */
